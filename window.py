@@ -13,16 +13,18 @@ from Panels.settingDialog import settingDialog
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, projekt_folder):
+    def __init__(self, projekt_folder, data):
         super().__init__()
         self.projekt_folder=projekt_folder
-        self.setWindowTitle("Mein Programm")
+        self.setWindowTitle("AI Trainer")
         self.resize(800, 600)
         self.currentProjetk=None
+        self.data=data
+        #language = LanguageSelector()
+        #self.language=language.get_labels(data[language])
 
         # Create the menu bar
         menubar = self.menuBar()
-
         # Create the file menu and add actions
         file_menu = menubar.addMenu('File')
 
@@ -66,9 +68,9 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central_widget)
 
         layout = QtWidgets.QHBoxLayout(central_widget)
-        self.treeview=TreeviewPanel()
+        self.treeview=TreeviewPanel()#self.language
         layout.addWidget(self.treeview)
-        cam_panel = CamPanel([0, 0, 640, 480, 1, 100])
+        cam_panel = CamPanel([0, 0, 640, 480, 1, 100])#self.language,
         layout.addWidget(cam_panel)
 
     def exit(self):
@@ -79,9 +81,7 @@ class MainWindow(QMainWindow):
         if dialog.exec_() == QtWidgets.QDialog.Accepted:
             project_folder = dialog.get_inputs()
             self.projekt_folder=project_folder
-            with open("./settings.json") as f:
-                data=json.load(f)
-            data["projectFolder"]=project_folder
+            self.data["projectFolder"]=project_folder
             with open("./settings.json", "w") as f:
                 json.dump(data,f)
 
@@ -108,9 +108,14 @@ class MainWindow(QMainWindow):
             self.treeview.setJson(jsonfile)
 
     def open_projeck(self):
-        file_name, _ = QtWidgets.QFileDialog.getExistingDirectory(self, 'Open Project',self.projekt_folder)#
-        if file_name:
-            print(f'Opening {file_name}')
+        folder = QtWidgets.QFileDialog.getExistingDirectory(self, 'Open Project',self.projekt_folder)
+        if folder:
+            folder_name = os.path.basename(folder)
+            file_name = f'{folder_name}.json'
+            file_path = os.path.join(folder, file_name)
+            if os.path.exists(file_path):
+                self.treeview.setJson(file_path)
+            
 
     def save_projeck(self):
         self.treeview.saveJson()
@@ -130,6 +135,6 @@ if __name__ == "__main__":
         folder_name=data["projectFolder"]
 
 
-    window = MainWindow(folder_name)
+    window = MainWindow(folder_name, data)
     window.show()
     app.exec_()
