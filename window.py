@@ -8,6 +8,7 @@ from PyQt5 import QtWidgets
 from Panels.CameraWidget import CameraWidget as CamPanel
 from Panels.TreeviewPanel import TreeviewPanel
 from Panels.NewProjectWindow import ProjectDialog
+from Panels.settingDialog import settingDialog
 
 
 
@@ -74,7 +75,15 @@ class MainWindow(QMainWindow):
         self.close()
 
     def settings(self):
-        pass
+        dialog = settingDialog(self.projekt_folder, self)
+        if dialog.exec_() == QtWidgets.QDialog.Accepted:
+            project_folder = dialog.get_inputs()
+            self.projekt_folder=project_folder
+            with open("./settings.json") as f:
+                data=json.load(f)
+            data["projectFolder"]=project_folder
+            with open("./settings.json", "w") as f:
+                json.dump(data,f)
 
     def new_projeck(self):
         dialog = ProjectDialog(self.projekt_folder, self)
