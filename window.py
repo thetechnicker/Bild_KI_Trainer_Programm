@@ -20,8 +20,6 @@ class MainWindow(QMainWindow):
         self.resize(800, 600)
         self.currentProjetk=None
         self.data=data
-        #language = LanguageSelector()
-        #self.language=language.get_labels(data[language])
 
         # Create the menu bar
         menubar = self.menuBar()
