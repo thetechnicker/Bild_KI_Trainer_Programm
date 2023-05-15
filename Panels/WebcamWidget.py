@@ -57,7 +57,7 @@ class CameraWidget(QWidget):
         self.height = resolution.height()
 
         self.viewfinder = QCameraViewfinder()
-        self.overlay = Overlay(self.viewfinder)
+        self.overlay = Overlay(self.viewfinder, x=0, y=0, width=self.width, height=self.height) # Set width and height to match camera image
         self.camera.setViewfinder(self.viewfinder)
 
         layout = QVBoxLayout(self)
