@@ -6,10 +6,10 @@ from PyQt5 import QtCore
 import sys
 
 class CameraWidget(QtWidgets.QWidget):
-    def __init__(self):
+    def __init__(self, CameraInfo=QCameraInfo.defaultCamera()):
         super().__init__()
 
-        self.camera = QCamera(QCameraInfo.defaultCamera())
+        self.camera = QCamera(CameraInfo)
 
         self.viewfinder = QCameraViewfinder()
         self.camera.setViewfinder(self.viewfinder)
@@ -17,9 +17,9 @@ class CameraWidget(QtWidgets.QWidget):
         layout = QtWidgets.QVBoxLayout(self)
         layout.addWidget(self.viewfinder)
 
-
-
         self.camera.start()
+
+        
 
 
 if __name__=="__main__":
