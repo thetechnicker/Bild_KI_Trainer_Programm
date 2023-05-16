@@ -59,7 +59,7 @@ class CameraWidget(QWidget):
         self.width = size.width()-1
         self.height = size.height()-1
 
-        self.overlay = Overlay(self.viewfinder, x=0, y=0, width=self.width, height=self.height) # Set width and height to match camera image
+        self.overlay = Overlay(self.viewfinder)
         self.camera.setViewfinder(self.viewfinder)
 
         layout = QVBoxLayout(self)
@@ -70,16 +70,18 @@ class CameraWidget(QWidget):
     def resizeEvent(self, event):
         super().resizeEvent(event)
         size=self.viewfinder.size()
+        FW=16
+        FH=9
         width = size.width()-1
         height = size.height()-1
-        width_scale = width / 640
-        height_scale = height / 480
+        width_scale = width / FW
+        height_scale = height / FH
         scale = min(width_scale, height_scale)
-        w=640*scale
-        h=480*scale
+        w=FW*scale
+        h=FH*scale
         x = (width - w) // 2
         y = (height - h) // 2
-        print(x,y, h, w)
+        #print(x,y, h, w, width, height, scale)
         self.overlay.update_grid(x=int(x),y=int(y),width=int(w),height=int(h))
         self.overlay.resize(self.viewfinder.size())
 
