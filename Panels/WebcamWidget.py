@@ -47,7 +47,7 @@ class Overlay(QWidget):
             x = self.x + i * (self.width / self.vertical_lines)
             painter.drawLine(int(x), int(self.y), int(x), int(self.y + self.height))
 
-class CameraWidget(QWidget):
+class WebcamWidget(QWidget):
     def __init__(self, CameraInfo=QCameraInfo.defaultCamera()):
         super().__init__()
 
@@ -83,11 +83,11 @@ class CameraWidget(QWidget):
         self.overlay.update_grid(x=int(x),y=int(y),width=int(w),height=int(h))
         self.overlay.resize(self.viewfinder.size())
 
-    def setGrid(self,  horizontal_lines=None, vertical_lines=None):
-        self.overlay.update_grid( horizontal_lines=horizontal_lines, vertical_lines=vertical_lines)
+    def setGrid(self, x=None, y=None, width=None, height=None, horizontal_lines=None, vertical_lines=None):
+        self.overlay.update_grid(x=x,y=y,width=width,height=height,horizontal_lines=horizontal_lines, vertical_lines=vertical_lines)
 
 if __name__=="__main__":
     app = QApplication(sys.argv)
-    window = CameraWidget()
+    window = WebcamWidget()
     window.show()
     sys.exit(app.exec_())
