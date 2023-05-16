@@ -1,3 +1,4 @@
+import math
 from PyQt5.QtCore import Qt
 from PyQt5 import QtGui
 from PyQt5.QtMultimedia import QCamera, QCameraInfo
@@ -51,12 +52,13 @@ class CameraWidget(QWidget):
         super().__init__()
 
         self.camera = QCamera(CameraInfo)
+        self.viewfinder = QCameraViewfinder()
         viewfinder_settings = self.camera.viewfinderSettings()
         resolution = viewfinder_settings.resolution()
-        self.width = resolution.width()
-        self.height = resolution.height()
+        size=self.viewfinder.size()
+        self.width = size.width()-1
+        self.height = size.height()-1
 
-        self.viewfinder = QCameraViewfinder()
         self.overlay = Overlay(self.viewfinder, x=0, y=0, width=self.width, height=self.height) # Set width and height to match camera image
         self.camera.setViewfinder(self.viewfinder)
 
@@ -67,6 +69,18 @@ class CameraWidget(QWidget):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
+        size=self.viewfinder.size()
+        width = size.width()-1
+        height = size.height()-1
+        width_scale = width / 640
+        height_scale = height / 480
+        scale = min(width_scale, height_scale)
+        w=640*scale
+        h=480*scale
+        x = (width - w) // 2
+        y = (height - h) // 2
+        print(x,y, h, w)
+        self.overlay.update_grid(x=int(x),y=int(y),width=int(w),height=int(h))
         self.overlay.resize(self.viewfinder.size())
 
 if __name__=="__main__":
