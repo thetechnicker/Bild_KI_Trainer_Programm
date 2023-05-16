@@ -53,8 +53,6 @@ class CameraWidget(QWidget):
 
         self.camera = QCamera(CameraInfo)
         self.viewfinder = QCameraViewfinder()
-        viewfinder_settings = self.camera.viewfinderSettings()
-        resolution = viewfinder_settings.resolution()
         size=self.viewfinder.size()
         self.width = size.width()-1
         self.height = size.height()-1
@@ -84,6 +82,9 @@ class CameraWidget(QWidget):
         #print(x,y, h, w, width, height, scale)
         self.overlay.update_grid(x=int(x),y=int(y),width=int(w),height=int(h))
         self.overlay.resize(self.viewfinder.size())
+
+    def setGrid(self,  horizontal_lines=None, vertical_lines=None):
+        self.overlay.update_grid( horizontal_lines=horizontal_lines, vertical_lines=vertical_lines)
 
 if __name__=="__main__":
     app = QApplication(sys.argv)
