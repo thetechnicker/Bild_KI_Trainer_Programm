@@ -20,41 +20,11 @@ class EditableStandardItem(QtGui.QStandardItem):
             return True
         return False
 
-    def is_value(self):
+    def is_cnn(self):
         # Check if the second column contains the string 'value'
-        if 'value' in self.model().item(self.row(), 1).text():
+        if 'cnn' in self.model().item(self.row(), 1).text():
             return True
         return False
-
-# class EditDialog(QtWidgets.QDialog):
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         self.setWindowTitle('Edit Item')
-
-#         # Create the label input
-#         self.label_input = QtWidgets.QLineEdit()
-
-#         # Create the type select
-#         self.type_select = QtWidgets.QComboBox()
-#         self.type_select.addItems(['file', 'folder'])
-
-#         # Create the OK and Cancel buttons
-#         self.ok_button = QtWidgets.QPushButton('OK')
-#         self.ok_button.clicked.connect(self.accept)
-#         self.cancel_button = QtWidgets.QPushButton('Cancel')
-#         self.cancel_button.clicked.connect(self.reject)
-
-#         # Create the layout
-#         layout = QtWidgets.QVBoxLayout()
-#         layout.addWidget(QtWidgets.QLabel('Label:'))
-#         layout.addWidget(self.label_input)
-#         layout.addWidget(QtWidgets.QLabel('Type:'))
-#         layout.addWidget(self.type_select)
-#         button_layout = QtWidgets.QHBoxLayout()
-#         button_layout.addWidget(self.ok_button)
-#         button_layout.addWidget(self.cancel_button)
-#         layout.addLayout(button_layout)
-#         self.setLayout(layout)
 
     def get_data(self):
         return {
@@ -70,24 +40,19 @@ class TreeviewPanel(QtWidgets.QWidget):
 
         layout = QtWidgets.QVBoxLayout(self)
 
-        #select_layout = QtWidgets.QHBoxLayout()
-        #self.select_button = QtWidgets.QPushButton('Select JSON')
-        #self.select_button.clicked.connect(self.select_file)
-        #select_layout.addWidget(self.select_button)
-        #layout.addLayout(select_layout)
 
         self.tree_view = QtWidgets.QTreeView()
         self.model = QtGui.QStandardItemModel(self)
-        self.model.setColumnCount(2)  # Set the number of columns to 2
-        self.model.setHeaderData(0, Qt.Horizontal,"Name")  # Set the header for the first column
-        self.model.setHeaderData(1, Qt.Horizontal, "Type")  # Set the header for the first column
+        self.model.setColumnCount(2)
+        self.model.setHeaderData(0, Qt.Horizontal,"Name")
+        self.model.setHeaderData(1, Qt.Horizontal, "Type")
         self.tree_view.setModel(self.model)
         self.tree_view.hideColumn(1)
         layout.addWidget(self.tree_view)
 
         button_layout = QtWidgets.QHBoxLayout()
         add_button = QtWidgets.QPushButton('Add')
-#        add_button.clicked.connect(self.add_item)
+        add_button.clicked.connect(self.add_item)
         button_layout.addWidget(add_button)
 
         remove_button = QtWidgets.QPushButton('Remove')
@@ -97,8 +62,6 @@ class TreeviewPanel(QtWidgets.QWidget):
 
         if self.file_path and self.file_path.endswith('.json'):
             self.load_json(self.file_path)
-        #else: 
-        #    self.select_file()
         self.tree_view.doubleClicked.connect(self.on_double_click)
 
     def setJson(self, file):
@@ -107,11 +70,11 @@ class TreeviewPanel(QtWidgets.QWidget):
 
     def on_double_click(self, index):
         item = self.model.itemFromIndex(index)
-        print(item)
-        # Open the edit dialog here
-        #dialog = EditDialog()
-        #if dialog.exec_() == QtWidgets.QDialog.Accepted:
-        #    data = dialog.get_data()
+        if self.callback:
+            self.callback(item)
+    
+    def set_callback(self, callback):
+        self.callback = callback
             
 
 
@@ -119,14 +82,11 @@ class TreeviewPanel(QtWidgets.QWidget):
         selected_indexes = self.tree_view.selectedIndexes()
 
         if selected_indexes:
-            # Get the first selected index
             index = selected_indexes[0]
-            # Remove the corresponding item from the model
             self.model.removeRow(index.row(), index.parent())
 
 
     def select_file(self):
-
         file_dialog = QtWidgets.QFileDialog()
         file_dialog.setNameFilter("JSON files (*.json)")
         file_dialog.setFileMode(QtWidgets.QFileDialog.ExistingFile)
@@ -140,6 +100,22 @@ class TreeviewPanel(QtWidgets.QWidget):
             self.file_path = file_dialog.selectedFiles()[0]
             self.load_json(self.file_path)
 
+    def get_item_by_name(self, name):
+        if name==None or name=="":
+            return None
+        def search_children(parent):
+            for row in range(parent.rowCount()):
+                child = parent.child(row)
+                if child.text() == name:
+                    return child
+                result = search_children(child)
+                if result:
+                    return result
+            return None
+
+        root = self.model.invisibleRootItem()
+        return search_children(root)
+
 
     def load_json(self, file_path):
         fail=False
@@ -152,6 +128,9 @@ class TreeviewPanel(QtWidgets.QWidget):
                 fail=True
                 data={
                     "classes": [
+                    ],
+                    "Neuronale Netze":[
+
                     ],
                     "traindata": [
 
@@ -199,7 +178,6 @@ class TreeviewPanel(QtWidgets.QWidget):
                     break
         return parent_item
     
-    # def add_item(self):
 
 
     def get_tree_structure(root_item):
@@ -226,6 +204,51 @@ class TreeviewPanel(QtWidgets.QWidget):
     def saveJson(self):
         with open(self.select_file, "w") as f:
             json.dump(self.get_tree_structure(),f)
+
+    def add_item(self):
+        dialog = QtWidgets.QDialog(self)
+        layout = QtWidgets.QVBoxLayout(dialog)
+
+        type_label = QtWidgets.QLabel("Type:")
+        layout.addWidget(type_label)
+        type_select = QtWidgets.QComboBox()
+        type_select.addItems(["img", "folder", "cnn", "class"])
+        layout.addWidget(type_select)
+
+        name_label = QtWidgets.QLabel("Name:")
+        layout.addWidget(name_label)
+        name_input = QtWidgets.QLineEdit()
+        layout.addWidget(name_input)
+
+        button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        button_box.accepted.connect(dialog.accept)
+        button_box.rejected.connect(dialog.reject)
+        layout.addWidget(button_box)
+
+        if dialog.exec_() == QtWidgets.QDialog.Accepted:
+            item_type = type_select.currentText()
+            item_name = name_input.text()
+            name=""
+            if item_type=="img":
+                return
+            elif item_type=="folder":
+                name=None
+            elif item_type=="cnn":
+                name="Neuronale Netze"
+            elif item_type=="class":
+                name="classes"
+            parent=self.get_item_by_name(name)
+            
+
+            name_item = EditableStandardItem(item_name)
+            type_item = EditableStandardItem(item_type)
+
+            if parent:
+                parent.appendRow([name_item, type_item])
+            else:
+                self.model.appendRow([name_item, type_item])
+    
+
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])

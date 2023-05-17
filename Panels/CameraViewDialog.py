@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import QDialog, QLabel, QGridLayout, QLineEdit, QPushButton
 from WebcamWidget import WebcamWidget
 
 class CameraViewDialog(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, GridHeight=None, GridWidth=None):
         super().__init__(parent)
         self.setMinimumSize(QtCore.QSize(1024, 480))
         self.resize(QtCore.QSize(1024, 480))
@@ -68,8 +68,8 @@ class CameraViewDialog(QDialog):
             gx = int(self.gxInput.text())
             gy = int(self.gyInput.text())
             self.cam.setGrid(x=x,y=y,horizontal_lines=gx,vertical_lines=gy)
-        finally:
-            pass
+        except Exception as e:
+            print(e)
 
 
 if __name__ == "__main__":

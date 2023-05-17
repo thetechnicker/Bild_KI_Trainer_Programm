@@ -5,10 +5,11 @@ from PyQt5.QtWidgets import QMainWindow, QApplication
 from PyQt5 import QtWidgets
 
 #from Panels.cam_panel import cam_panel
-from Panels.CameraWidget import CameraWidget as CamPanel
+from Panels.CameraSettingWidget import CameraWidget as CamPanel
 from Panels.TreeviewPanel import TreeviewPanel
 from Panels.NewProjectWindow import ProjectDialog
 from Panels.settingDialog import settingDialog
+from Panels.NeuralNetWidget import FileEditor as NeuralNetEditor
 
 
 
@@ -66,13 +67,22 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central_widget)
 
         layout = QtWidgets.QHBoxLayout(central_widget)
-        self.treeview=TreeviewPanel()#self.language
+        self.treeview=TreeviewPanel()
+        self.treeview.set_callback(self.test)
+
         layout.addWidget(self.treeview)
-        cam_panel = CamPanel([0, 0, 640, 480, 1, 100])#self.language,
+
+        self.NeuralNetEditor=NeuralNetEditor()
+        layout.addWidget(self.NeuralNetEditor)
+    
+        cam_panel = CamPanel([0, 0, 640, 480, 1, 100])
         layout.addWidget(cam_panel)
 
     def exit(self):
         self.close()
+    
+    def test(self, var):
+        print(var)
 
     def settings(self):
         dialog = settingDialog(self.projekt_folder, self)
@@ -136,3 +146,5 @@ if __name__ == "__main__":
     window = MainWindow(folder_name, data)
     window.show()
     app.exec_()
+
+#FileEditor
