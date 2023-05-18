@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QTabWidget, QTex
 class FileEditor(QWidget):
     def __init__(self):
         super().__init__()
+        self.setMinimumSize(400, 500);
         layout = QVBoxLayout()
         self.setLayout(layout)
 
@@ -20,6 +21,10 @@ class FileEditor(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = FileEditor()
+    window.add_view('./test.json')
+    window.add_view('./test.json')
+    window.add_view('./test.json')
+    window.add_view('./test.json')
     window.add_view('./test.json')
     window.show()
     app.exec_()

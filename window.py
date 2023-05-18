@@ -77,12 +77,13 @@ class MainWindow(QMainWindow):
     
         cam_panel = CamPanel([0, 0, 640, 480, 1, 100])
         layout.addWidget(cam_panel)
-
+        
+        
     def exit(self):
         self.close()
     
     def test(self, var):
-        print(var)
+        print(var.get_data())
 
     def settings(self):
         dialog = settingDialog(self.projekt_folder, self)
