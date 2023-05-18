@@ -13,6 +13,7 @@ from Panels.NeuralNetWidget import FileEditor as NeuralNetEditor
 
 
 
+
 class MainWindow(QMainWindow):
     def __init__(self, projekt_folder, data):
         super().__init__()

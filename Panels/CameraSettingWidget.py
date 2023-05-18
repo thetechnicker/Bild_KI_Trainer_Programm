@@ -1,6 +1,11 @@
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QLineEdit, QPushButton
 import sys
+if not (__name__=="__main__"):
+    from .CameraViewDialog import CameraViewDialog
+else:
+    from CameraViewDialog import CameraViewDialog
+
 
 class CameraWidget(QWidget):
     def __init__(self, *data, **data2):
@@ -14,6 +19,7 @@ class CameraWidget(QWidget):
         type_layout.addWidget(QLabel('type:'))
         self.type_box = QComboBox()
         self.type_box.addItems(['web', 'integratet'])
+        self.type_box.currentIndexChanged.connect(self.chancheType)
         
         type_layout.addWidget(self.type_box)
 
@@ -52,42 +58,16 @@ class CameraWidget(QWidget):
         password_layout.addWidget(self.password_line)
         self.web_layout.addLayout(password_layout)
 
-        layout.addLayout(self.web_layout)
+        self.container_widget = QWidget()
+        self.container_widget.setLayout(self.web_layout)
 
-        layout.addWidget(QLabel('size:'))
-        size_layout = QHBoxLayout()
-        size_layout.addWidget(QLabel('Height:'))
-        self.x_size_line = QLineEdit()
-        size_layout.addWidget(self.x_size_line)
-        size_layout.addWidget(QLabel('Width:'))
-        self.y_size_line = QLineEdit()
-        size_layout.addWidget(self.y_size_line)
-        layout.addLayout(size_layout)
+        layout.addWidget(self.container_widget)
+        #self.container_widget.hide()
 
-        layout.addWidget(QLabel('used part:'))
-        used_part_layout1 = QVBoxLayout()
-        used_part_layout1.addWidget(QLabel('X:'))
-        self.x_used_line = QLineEdit()
-        used_part_layout1.addWidget(self.x_used_line)
-        used_part_layout1.addWidget(QLabel('Y:'))
-        self.y_used_line = QLineEdit()
-        used_part_layout1.addWidget(self.y_used_line)
-        
-        used_part_layout2 = QVBoxLayout()
-        used_part_layout2.addWidget(QLabel('Height:'))
-        self.h_used_line = QLineEdit()
-        used_part_layout2.addWidget(self.h_used_line)
-        used_part_layout2.addWidget(QLabel('Width:'))
-        self.w_used_line = QLineEdit()
-        used_part_layout2.addWidget(self.w_used_line)
-
-        used_part_layout=QHBoxLayout()
-        used_part_layout.addLayout(used_part_layout1)
-        used_part_layout.addLayout(used_part_layout2)
-        layout.addLayout(used_part_layout)
 
         button_layout = QHBoxLayout()
         self.open_button = QPushButton('open')
+        self.open_button.clicked.connect(self.openCam)
         button_layout.addWidget(self.open_button)
         self.test_button = QPushButton('test cnn')
         button_layout.addWidget(self.test_button)
@@ -96,8 +76,17 @@ class CameraWidget(QWidget):
 
         self.setLayout(layout)
 
-    def openCam():
-        pass
+    def openCam(self):
+        dialog=CameraViewDialog(self)
+        dialog.show()
+
+    def chancheType(self, index):
+        current_value = self.type_box.currentText()
+        if current_value=="web":
+            self.container_widget.show()
+        else:
+            self.container_widget.hide()
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

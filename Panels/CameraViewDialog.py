@@ -1,7 +1,11 @@
 import sys
 from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtWidgets import QDialog, QLabel, QGridLayout, QLineEdit, QPushButton
-from WebcamWidget import WebcamWidget
+
+if not (__name__=="__main__") and True:
+    from .WebcamWidget import WebcamWidget
+else:
+    from WebcamWidget import WebcamWidget
 
 class CameraViewDialog(QDialog):
     def __init__(self, parent=None, GridHeight=None, GridWidth=None):
