@@ -1,1 +1,19 @@
-{"classes": [], "Neuronale Netze": [], "traindata": []}
+{
+    "Classes": [
+        "test"
+    ],
+    "Neuronale Netze": [],
+    "Images": [
+        {
+            "label": "Test",
+            "File": "unknown",
+            "Yolo": {
+                "gx": 0,
+                "gy": 0,
+                "x": 0,
+                "y": 0,
+                "Class": 0
+            }
+        }
+    ]
+}

@@ -41,11 +41,11 @@ class CameraViewDialog(QDialog):
 
         self.gyInput.setValidator(QtGui.QIntValidator())
         self.gyInput.textChanged.connect(self.updateGrid)
-        """
+
         gridLayout.addWidget(QLabel("X:"), 0, 0)
         gridLayout.addWidget(self.xInput, 0, 1)
         gridLayout.addWidget(QLabel("Y:"), 1, 0)
-        gridLayout.addWidget(self.yInput, 1, 1)"""
+        gridLayout.addWidget(self.yInput, 1, 1)
         
         gridLayout.addWidget(QLabel("GX:"), 0, 0)
         gridLayout.addWidget(self.gxInput, 0, 1)

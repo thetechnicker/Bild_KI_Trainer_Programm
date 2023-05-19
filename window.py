@@ -2,7 +2,7 @@ import json
 import os
 import sys
 from PyQt5.QtWidgets import QMainWindow, QApplication
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 
 #from Panels.cam_panel import cam_panel
 from Panels.CameraSettingWidget import CameraWidget as CamPanel
@@ -78,6 +78,7 @@ class MainWindow(QMainWindow):
     
         cam_panel = CamPanel([0, 0, 640, 480, 1, 100])
         layout.addWidget(cam_panel)
+        layout.setAlignment(cam_panel, QtCore.Qt.AlignTop)
         
         
     def exit(self):

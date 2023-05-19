@@ -1,7 +1,10 @@
-from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QLineEdit, QPushButton
+from PyQt5 import QtWidgets, QtCore
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QLineEdit, QPushButton, QGridLayout
+from PyQt5.QtMultimedia import QCameraInfo
+
 import sys
-if not (__name__=="__main__"):
+
+if not (__name__=="__main__") :
     from .CameraViewDialog import CameraViewDialog
 else:
     from CameraViewDialog import CameraViewDialog
@@ -10,11 +13,13 @@ else:
 class CameraWidget(QWidget):
     def __init__(self, *data, **data2):
         super().__init__()
+        self.setMinimumSize(250, 500);
         self.initUI()
 
     def initUI(self):
-        layout = QVBoxLayout()
-        layout.addWidget(QLabel('Kamera'))
+        layout = QGridLayout()
+        layout.setVerticalSpacing(20)
+        layout.addWidget(QLabel('Kamera'), 0, 0)
         type_layout=QHBoxLayout()
         type_layout.addWidget(QLabel('type:'))
         self.type_box = QComboBox()
@@ -23,8 +28,8 @@ class CameraWidget(QWidget):
         
         type_layout.addWidget(self.type_box)
 
-        layout.addLayout(type_layout)
-
+        layout.addLayout(type_layout, 1, 0)
+        layout.setAlignment(type_layout, QtCore.Qt.AlignTop)
         self.web_layout = QVBoxLayout()
         address_layout = QHBoxLayout()
         address_layout.addWidget(QLabel('address:'))
@@ -61,8 +66,25 @@ class CameraWidget(QWidget):
         self.container_widget = QWidget()
         self.container_widget.setLayout(self.web_layout)
 
-        layout.addWidget(self.container_widget)
-        #self.container_widget.hide()
+        layout.addWidget(self.container_widget, 2, 0)
+        
+        camera_list = []
+        cameras = QCameraInfo.availableCameras()
+        
+        camera_list.append("Default")
+        for i in range(len(cameras)):
+            camera_list.append(str(i+1))
+        
+        self.CameraSelect = QComboBox()
+        self.CameraSelect.addItems(camera_list)
+        self.CameraLayout = QHBoxLayout()
+        self.CameraLayout.addWidget(self.CameraSelect)
+        
+        self.Camera_container_widget = QWidget()
+        self.Camera_container_widget.setLayout(self.CameraLayout)
+        self.Camera_container_widget.hide()
+
+        layout.addWidget(self.Camera_container_widget, 3, 0)
 
 
         button_layout = QHBoxLayout()
@@ -72,7 +94,9 @@ class CameraWidget(QWidget):
         self.test_button = QPushButton('test cnn')
         button_layout.addWidget(self.test_button)
 
-        layout.addLayout(button_layout)
+        layout.addLayout(button_layout, 5, 0)
+        layout.setAlignment(button_layout, QtCore.Qt.AlignTop)
+        layout.setRowStretch(4, 1)
 
         self.setLayout(layout)
 
@@ -84,8 +108,10 @@ class CameraWidget(QWidget):
         current_value = self.type_box.currentText()
         if current_value=="web":
             self.container_widget.show()
+            self.Camera_container_widget.hide()
         else:
             self.container_widget.hide()
+            self.Camera_container_widget.show()
 
 
 if __name__ == '__main__':
