@@ -1,8 +1,11 @@
 {
     "Classes": [
-        "test"
+        "class1"
     ],
-    "Neuronale Netze": [],
+    "Neuronale Netze": [
+        "netz1",
+        "netz2"
+    ],
     "Images": [
         {
             "label": "Test",

@@ -1,5 +1,6 @@
 import os
 import json
+import sys
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import Qt
 
@@ -14,6 +15,11 @@ class EditableStandardItem(QtGui.QStandardItem):
             return True
         return False
 
+    def is_val(self):
+        if 'val' in self.model().item(self.row(), 1).text():
+            return True
+        return False
+    
     def is_non(self):
         # Check if the second column contains the string 'non'
         if 'non' in self.model().item(self.row(), 1).text():
@@ -200,6 +206,78 @@ class TreeviewPanel(QtWidgets.QWidget):
             type_item = EditableStandardItem('file')
             parent_item.appendRow([name_item, type_item])
 
+    def add_items2(self, parent, data):
+        try:
+            for key, value in data.items():
+                if key=="Images":
+                    self.model.appendRow([parent_name,EditableStandardItem("folder")])
+                    pass
+                elif key == "Neural Net":
+                    parent_name = "Neuronale Netze"
+                    self.model.appendRow([parent_name,EditableStandardItem("folder")])
+                    name = "cnn"
+                    for i in value:
+                        
+                        parent = self.get_item_by_name(parent_name)
+
+                        name_item = EditableStandardItem(i)
+                        type_item = EditableStandardItem(name)
+
+                        if parent:
+                            parent.appendRow([name_item, type_item])
+                        else:
+                            self.model.appendRow([name_item, type_item])
+                elif key == "Class":
+                    parent_name = "Classes"
+                    self.model.appendRow([parent_name,EditableStandardItem("folder")])
+                    name = "class"
+                    for i in value:
+                        parent = self.get_item_by_name(parent_name)
+        
+                        name_item = EditableStandardItem(i)
+                        type_item = EditableStandardItem(name)
+        
+                        if parent:
+                            parent.appendRow([name_item, type_item])
+                        else:
+                            self.model.appendRow([name_item, type_item])
+        except:
+            print("error")
+            sys.exit()
+                   
+        # parent = self.get_item_by_name("Images")
+        # name_item = EditableStandardItem(item_name or "test")
+        # file_item = EditableStandardItem("File")
+        # yolo_item = EditableStandardItem("Yolo")
+        # gx_item = EditableStandardItem("gx")
+        # gy_item = EditableStandardItem("gy")
+        # x_item = EditableStandardItem("x")
+        # y_item = EditableStandardItem("y")
+        # c_item = EditableStandardItem("c")
+
+        # file_item.appendRow([EditableStandardItem(),EditableStandardItem("val")])
+        # value=EditableStandardItem()
+        # gx_item.appendRow([EditableStandardItem(),EditableStandardItem("val")])
+        # value=EditableStandardItem()
+        # gy_item.appendRow([EditableStandardItem(),EditableStandardItem("val")])
+        # value=EditableStandardItem()
+        # x_item.appendRow([EditableStandardItem(),EditableStandardItem("val")])
+        # value=EditableStandardItem()
+        # y_item.appendRow([EditableStandardItem(),EditableStandardItem("val")])
+        # value=EditableStandardItem()
+        # c_item.appendRow([EditableStandardItem(),EditableStandardItem("val")])
+
+        # yolo_item.appendRow([gx_item,EditableStandardItem("non")])
+        # yolo_item.appendRow([gy_item,EditableStandardItem("non")])
+        # yolo_item.appendRow([x_item,EditableStandardItem("non")])
+        # yolo_item.appendRow([y_item,EditableStandardItem("non")])
+        # yolo_item.appendRow([c_item,EditableStandardItem("non")])
+
+        # name_item.appendRow([file_item,EditableStandardItem("non")])
+        # name_item.appendRow([yolo_item,EditableStandardItem("non")])
+
+        # parent.appendRow([name_item,EditableStandardItem("img")])
+
     def find_item(self, path_parts):
         parent_item = self.model.invisibleRootItem()
         for part in path_parts:
@@ -210,40 +288,64 @@ class TreeviewPanel(QtWidgets.QWidget):
                     break
         return parent_item
 
-    def get_tree_structure(root_item):
-        def get_structure(item):
-            if item.hasChildren():
-                structure = []
-                for row in range(item.rowCount()):
-                    child_item = item.child(row)
-                    value = get_structure(child_item)
-                    structure.append(value)
-                return {item.text(): structure}
+    def tree_to_dict(self,tree: QtWidgets.QTreeView) -> dict:
+        model = tree.model()
+        root = model.invisibleRootItem()
+        result = {}
+
+        def process_node(node):
+            if node.hasChildren():
+                children = [node.child(i) for i in range(node.rowCount())]
+                if all(not child.hasChildren() for child in children):
+                    return [child.text() for child in children]
+                else:
+                    return {child.text(): process_node(child) for child in children}
             else:
-                return item.text()
+                return node.text()
 
-        tree_structure = {}
-        for row in range(root_item.rowCount()):
-            item = root_item.child(row)
-            key = item.text()
-            value = get_structure(item)[key]
-            tree_structure[key] = value
+        for i in range(root.rowCount()):
+            item = root.child(i)
+            result[item.text()] = process_node(item)
 
-        return tree_structure
+        return result
+    
+    def get_structure(self):
+        root=self.model.invisibleRootItem()
+        structure={}
+        for i in range(root.rowCount()):
+            item=root.child(i)
+            if item.text()=="Classes":
+                d=[]
+                if item.hasChildren():
+                    for j in range(item.rowCount()):
+                        d.append(item.child(i).text())
+                structure["Classes"]=d
+            elif item.text()=="Neuronale Netze":
+                d=[]
+                if item.hasChildren():
+                    for j in range(item.rowCount()):
+                        d.append(item.child(i).text())
+                structure["Neuronale Netze"]=d
+            elif item.text()=="Images":
+                d=[]
+                structure["Images"]=d
+        return structure
+
 
     def saveJson(self):
+        d=self.get_structure()
+        print(d)
         with open(self.file_path, "w") as f:
-            d=self.get_tree_structure()
             json.dump(d,f)
 
     def add_item(self):
         dialog = AddDialog(self)
-    
+
         if dialog.exec_() == QtWidgets.QDialog.Accepted:
             item_type, item_name = dialog.get_data()
-    
+
             name = ""
-            
+            parent_name=""
             if item_type == "Image":
                 parent = self.get_item_by_name("Images")
                 name_item = EditableStandardItem(item_name)
@@ -254,50 +356,50 @@ class TreeviewPanel(QtWidgets.QWidget):
                 x_item = EditableStandardItem("x")
                 y_item = EditableStandardItem("y")
                 c_item = EditableStandardItem("c")
-    
+
+                file_item.appendRow([EditableStandardItem(),EditableStandardItem("val")])
                 value=EditableStandardItem()
-                file_item.appendRow([value])
+                gx_item.appendRow([EditableStandardItem(),EditableStandardItem("val")])
                 value=EditableStandardItem()
-                gx_item.appendRow([value])
+                gy_item.appendRow([EditableStandardItem(),EditableStandardItem("val")])
                 value=EditableStandardItem()
-                gy_item.appendRow([value])
+                x_item.appendRow([EditableStandardItem(),EditableStandardItem("val")])
                 value=EditableStandardItem()
-                x_item.appendRow([value])
+                y_item.appendRow([EditableStandardItem(),EditableStandardItem("val")])
                 value=EditableStandardItem()
-                y_item.appendRow([value])
-                value=EditableStandardItem()
-                c_item.appendRow([value])
-    
-                yolo_item.appendRow([gx_item])
-                yolo_item.appendRow([gy_item])
-                yolo_item.appendRow([x_item])
-                yolo_item.appendRow([y_item])
-                yolo_item.appendRow([c_item])
-    
-                name_item.appendRow([file_item])
-                name_item.appendRow([yolo_item])
-    
-                self.model.appendRow([name_item])
-    
+                c_item.appendRow([EditableStandardItem(),EditableStandardItem("val")])
+
+                yolo_item.appendRow([gx_item,EditableStandardItem("non")])
+                yolo_item.appendRow([gy_item,EditableStandardItem("non")])
+                yolo_item.appendRow([x_item,EditableStandardItem("non")])
+                yolo_item.appendRow([y_item,EditableStandardItem("non")])
+                yolo_item.appendRow([c_item,EditableStandardItem("non")])
+
+                name_item.appendRow([file_item,EditableStandardItem("non")])
+                name_item.appendRow([yolo_item,EditableStandardItem("non")])
+
+                parent.appendRow([name_item,EditableStandardItem("img")])
+
             elif item_type == "Neural Net":
                 parent_name = "Neuronale Netze"
                 name = "cnn"
             elif item_type == "Class":
                 parent_name = "Classes"
                 name = "class"
-            
-            parent = self.get_item_by_name(parent_name)
-    
-            name_item = EditableStandardItem(item_name)
-            type_item = EditableStandardItem(name)
-    
-            if parent:
-                parent.appendRow([name_item, type_item])
-            else:
-                self.model.appendRow([name_item, type_item])
+            if not item_type=="Image":
+                parent = self.get_item_by_name(parent_name)
+
+                name_item = EditableStandardItem(item_name)
+                type_item = EditableStandardItem(name)
+
+                if parent:
+                    parent.appendRow([name_item, type_item])
+                else:
+                    self.model.appendRow([name_item, type_item])
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
     tree_view_panel = TreeviewPanel("C:/Users/lucas/Documents/Python/GUI/Bild_KI_Trainer_Programm/test.json")
     tree_view_panel.show()
     app.exec_()
+    tree_view_panel.saveJson()

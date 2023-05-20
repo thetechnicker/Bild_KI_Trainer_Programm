@@ -225,7 +225,7 @@ class TreeviewPanel(QtWidgets.QWidget):
             tree_structure[key] = value
     
         return tree_structure
-
+    
     def saveJson(self):
         with open(self.file_path, "w") as f:
             d=self.get_item_by_name()
