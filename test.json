@@ -1,1 +1,1 @@
-{"Classes": ["class1"], "Neuronale Netze": ["netz2", "netz2"], "Images": [{"label": "Test", "File": "unknown", "Yolo": {"gx": 0, "gy": 0, "x": 0, "y": 0, "Class": 0}}]}
+{"Classes": [], "Neuronale Netze": [], "Images": [{"label": "Test", "File": "unknown", "Yolo": {"gx": 0, "gy": 0, "x": 0, "y": 0, "Class": 0}}]}

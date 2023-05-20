@@ -85,7 +85,9 @@ class MainWindow(QMainWindow):
         self.close()
     
     def test(self, var):
-        print(var.get_data())
+        label, type =var.get_data()
+        if type=="cnn":
+            pass
 
     def settings(self):
         dialog = settingDialog(self.projekt_folder, self)
