@@ -121,12 +121,15 @@ class TreeviewPanel(QtWidgets.QWidget):
 
     def on_double_click(self, index):
         item = self.model.itemFromIndex(index)
+        parent=item.parent()
         if self.callback:
-            self.callback(item)
+            self.callback(item, parent)
+            
     def set_callback(self, callback):
         self.callback=callback
 
     def setJson(self, file):
+        self.file_path=file
         self.load_json(file)
 
     def remove_item(self):
@@ -330,8 +333,9 @@ class TreeviewPanel(QtWidgets.QWidget):
     def saveJson(self):
         d=self.get_structure()
         #print(d)
-        with open(self.file_path, "w") as f:
-            json.dump(d,f)
+        if not d=={}:
+            with open(self.file_path, "w") as f:
+                json.dump(d,f)
 
     def add_item(self):
         dialog = AddDialog(self)
@@ -373,10 +377,17 @@ class TreeviewPanel(QtWidgets.QWidget):
             elif item_type == "Neural Net":
                 parent_name = "Neuronale Netze"
                 name = "cnn"
-                path=os.path.join(self.file_path, item_name, ".py")
-                print(path)
-                #with open(path, "w") as f:
-                #    f.write("#NeuronalNet.py")
+
+                head, _ = os.path.split(self.file_path)
+                main_path=os.path.join(head, "cnn" )
+                if not os.path.exists(main_path):
+                    os.makedirs(main_path, exist_ok=True)
+
+                path=os.path.join(main_path,f"{item_name}.py")
+                #print(path)
+                with open(path, "w") as f:
+                    f.write("#NeuronalNet.py")
+
             elif item_type == "Class":
                 parent_name = "Classes"
                 name = "class"

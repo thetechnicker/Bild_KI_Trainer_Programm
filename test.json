@@ -1,1 +1,1 @@
-{"Classes": [], "Neuronale Netze": [], "Images": [{"label": "Test", "File": "unknown", "Yolo": {"gx": 0, "gy": 0, "x": 0, "y": 0, "Class": 0}}]}
+{"Classes": [], "Neuronale Netze": ["cnn", "dasags"], "Images": [{"label": "Test", "File": "unknown", "Yolo": {"gx": 0, "gy": 0, "x": 0, "y": 0, "Class": 0}}, {"label": "gy", "rest": "Error"}]}
