@@ -35,22 +35,26 @@ class Overlay(QWidget):
     def paintEvent(self, event):
         painter = QtGui.QPainter(self)
         painter.setPen(Qt.red)
-        painter.drawRect(self.x, self.y, self.width, self.height)
+        try:
+            painter.drawRect(int(self.x), int(self.y), int(self.width), int(self.height))
 
-        # Draw horizontal lines
-        for i in range(1, self.horizontal_lines):
-            y = self.y + i * (self.height / self.horizontal_lines)
-            painter.drawLine(int(self.x), int(y), int(self.x + self.width), int(y))
+            # Draw horizontal lines
+            for i in range(1, self.horizontal_lines):
+                y = self.y + i * (self.height / self.horizontal_lines)
+                painter.drawLine(int(self.x), int(y), int(self.x + self.width), int(y))
 
-        # Draw vertical lines
-        for i in range(1, self.vertical_lines):
-            x = self.x + i * (self.width / self.vertical_lines)
-            painter.drawLine(int(x), int(self.y), int(x), int(self.y + self.height))
+            # Draw vertical lines
+            for i in range(1, self.vertical_lines):
+                x = self.x + i * (self.width / self.vertical_lines)
+                painter.drawLine(int(x), int(self.y), int(x), int(self.y + self.height))
+        except Exception as e:
+            print(e)
 
 class WebcamWidget(QWidget):
     def __init__(self, CameraInfo=QCameraInfo.defaultCamera()):
         super().__init__()
-
+        self.offsetX=0
+        self.offsetY=0
         self.camera = QCamera(CameraInfo)
         self.viewfinder = QCameraViewfinder()
         size=self.viewfinder.size()
@@ -67,25 +71,31 @@ class WebcamWidget(QWidget):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        size=self.viewfinder.size()
-        FW=16
-        FH=9
-        width = size.width()-1
-        height = size.height()-1
-        width_scale = width / FW
-        height_scale = height / FH
-        scale = min(width_scale, height_scale)
-        w=FW*scale
-        h=FH*scale
-        x = (width - w) // 2
-        y = (height - h) // 2
+        x, y, w, h =self.getDimension() 
         #print(x,y, h, w, width, height, scale)
         self.overlay.update_grid(x=int(x),y=int(y),width=int(w),height=int(h))
         self.overlay.resize(self.viewfinder.size())
 
     def setGrid(self, x=None, y=None, width=None, height=None, horizontal_lines=None, vertical_lines=None):
-        self.overlay.update_grid(x=x,y=y,width=width,height=height,horizontal_lines=horizontal_lines, vertical_lines=vertical_lines)
-
+        self.offsetX=x
+        self.offsetY=y
+        x_new, y_new, _, _ =self.getDimension()
+        self.overlay.update_grid(x=x_new, y=y_new, width=width,height=height,horizontal_lines=horizontal_lines, vertical_lines=vertical_lines)
+    
+    def getDimension(self):
+        size=self.viewfinder.size()
+        FW=16
+        FH=9
+        width = size.width()
+        height = size.height()
+        width_scale = width / FW
+        height_scale = height / FH
+        scale = min(width_scale, height_scale)
+        w=(FW*scale)#-self.offsetX
+        h=(FH*scale)#-self.offsetY
+        x = ((width - w) // 2) +self.offsetX
+        y = ((height - h) // 2)+self.offsetY
+        return (x, y, w, h)
 if __name__=="__main__":
     app = QApplication(sys.argv)
     window = WebcamWidget()

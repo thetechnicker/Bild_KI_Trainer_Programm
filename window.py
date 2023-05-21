@@ -10,8 +10,26 @@ from Panels.TreeviewPanel import TreeviewPanel
 from Panels.NewProjectWindow import ProjectDialog
 from Panels.settingDialog import settingDialog
 from Panels.NeuralNetWidget import FileEditor as NeuralNetEditor
+from Panels.consolenWidget import PythonConsole
 
+import subprocess
 
+try:
+    result = subprocess.run(['python', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    version = result.stdout.decode('utf-8').strip()
+    if not version:
+        version = result.stderr.decode('utf-8').strip()
+    #print(f'Python is installed: {version}')
+except FileNotFoundError:
+    #print('Python is not installed')
+    app = QtWidgets.QApplication([])
+
+    msg = QtWidgets.QMessageBox()
+    msg.setWindowTitle('Error')
+    msg.setText('Python is not installed')
+    msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+    msg.exec_()
+    sys.exit()
 
 
 class MainWindow(QMainWindow):
@@ -68,7 +86,8 @@ class MainWindow(QMainWindow):
         central_widget = QtWidgets.QWidget()
         self.setCentralWidget(central_widget)
 
-        layout = QtWidgets.QHBoxLayout(central_widget)
+        main_layout = QtWidgets.QVBoxLayout(central_widget)
+        layout = QtWidgets.QHBoxLayout()
         self.treeview=TreeviewPanel()
         self.treeview.set_callback(self.Treeview_click_event)
 
@@ -80,6 +99,8 @@ class MainWindow(QMainWindow):
         cam_panel = CamPanel([0, 0, 640, 480, 1, 100])
         layout.addWidget(cam_panel)
         layout.setAlignment(cam_panel, QtCore.Qt.AlignTop)
+        main_layout.addLayout(layout)
+        main_layout.addWidget(PythonConsole())
         self.openlast()
         
 
@@ -91,11 +112,11 @@ class MainWindow(QMainWindow):
 
     
     def Treeview_click_event(self, item, parent):
-        #print(item.text())
+        print(item.text())
         if parent:
-            #print(parent.text())
+            print(parent.text())
             if parent.text()=="Neuronale Netze":
-                #print("test")
+                print("test")
                 path=os.path.join(self.cnn_folder,f"{item.text()}.py")
                 self.NeuralNetEditor.add_view(path)
 

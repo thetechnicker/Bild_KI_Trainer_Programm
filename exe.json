@@ -18,6 +18,10 @@
    "value": false
   },
   {
+   "optionDest": "name",
+   "value": "AI Trainer"
+  },
+  {
    "optionDest": "ascii",
    "value": false
   },

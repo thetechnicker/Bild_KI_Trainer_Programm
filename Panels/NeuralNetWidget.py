@@ -1,9 +1,11 @@
 import os
 import sys
-from PyQt5 import QtWidgets
+import threading
+from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QTabWidget, QTextEdit
-from PyQt5.QtGui import QSyntaxHighlighter, QTextCharFormat, QFont, QColor
+from PyQt5.QtGui import QSyntaxHighlighter, QTextCharFormat, QFont, QColor, QIcon
 from PyQt5.QtCore import QRegExp
+
 
 class PythonHighlighter(QSyntaxHighlighter):
     def __init__(self, parent=None):
@@ -80,7 +82,35 @@ class FileEditor(QWidget):
         self.setLayout(layout)
 
         self.tabWidget = QTabWidget()
+        button = QtWidgets.QPushButton()
+        button.clicked.connect(self.runCode)
+        # Set the button icon to a green play image
+        icon = self.style().standardIcon(QtWidgets.QStyle.SP_MediaPlay)
+        button.setIcon(icon)
+
+        layout.addWidget(button)
+        layout.setAlignment(button, QtCore.Qt.AlignRight)
         layout.addWidget(self.tabWidget)
+        self.ScriptThread=None
+    
+    def runCode(self):
+        index = self.tabWidget.currentIndex()
+        tab_text = self.tabWidget.widget(index).toPlainText()
+        if not self.ScriptThread:
+            self.ScriptThread= threading.Thread(target=self.run_script,args=(tab_text,self.on_thread_finished))
+            self.ScriptThread.setDaemon(True)
+            self.ScriptThread.start()
+        else:
+            self.ScriptThread.join()
+            self.ScriptThread=None
+
+    def run_script(self, text, calback):
+        exec(text)
+        calback()
+
+    def on_thread_finished(self):
+        self.ScriptThread = None
+
 
     def add_view(self, filename):
         textEdit = QTextEdit()
