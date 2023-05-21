@@ -91,13 +91,13 @@ class MainWindow(QMainWindow):
 
     
     def Treeview_click_event(self, item, parent):
-        print(item.text())
-        print(parent.text())
-        if parent.text()=="Neuronale Netze":
-            print("test")
-            #if self.cnn_folder:
-            #    path=os.path.join(self.cnn_folder,f"{label}.py")
-            #    self.NeuralNetEditor.add_view(path)
+        #print(item.text())
+        if parent:
+            #print(parent.text())
+            if parent.text()=="Neuronale Netze":
+                #print("test")
+                path=os.path.join(self.cnn_folder,f"{item.text()}.py")
+                self.NeuralNetEditor.add_view(path)
 
     def settings(self):
         dialog = settingDialog(self.projekt_folder, self)
@@ -112,7 +112,7 @@ class MainWindow(QMainWindow):
         dialog = ProjectDialog(self.projekt_folder, self)
         if dialog.exec_() == QtWidgets.QDialog.Accepted:
             project_name, root_folder = dialog.get_inputs()
-            #print(f'Creating project "{project_name}" in folder "{project_folder}"')
+            ##print(f'Creating project "{project_name}" in folder "{project_folder}"')
             # Create the project folder
             project_folder = os.path.join(root_folder, project_name)
             self.data["lastProject"]=project_folder
@@ -147,11 +147,13 @@ class MainWindow(QMainWindow):
             folder_name = os.path.basename(self.data["lastProject"])
             file_name = f'{folder_name}.json'
             file_path = os.path.join(self.data["lastProject"], file_name)
+            self.cnn_folder=os.path.join(self.data["lastProject"],"cnn")
             if os.path.exists(file_path):
                 self.treeview.setJson(file_path)
 
     def save_projeck(self):
         self.treeview.saveJson()
+        self.NeuralNetEditor.save(self.cnn_folder)
 
 
 if __name__ == "__main__":
