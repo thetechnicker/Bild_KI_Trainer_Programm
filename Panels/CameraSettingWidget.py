@@ -71,7 +71,6 @@ class CameraWidget(QWidget):
         camera_list = []
         cameras = QCameraInfo.availableCameras()
         
-        camera_list.append("Default")
         for i in range(len(cameras)):
             camera_list.append(str(i+1))
         

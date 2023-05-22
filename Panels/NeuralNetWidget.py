@@ -101,8 +101,7 @@ class FileEditor(QWidget):
             self.ScriptThread.setDaemon(True)
             self.ScriptThread.start()
         else:
-            self.ScriptThread.join()
-            self.ScriptThread=None
+            pass
 
     def run_script(self, text, calback):
         exec(text)

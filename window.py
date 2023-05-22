@@ -33,14 +33,15 @@ except FileNotFoundError:
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, projekt_folder, data):
+    def __init__(self, data):
         super().__init__()
-        self.projekt_folder=projekt_folder
-        self.cnn_folder=None
         self.setWindowTitle("AI Trainer")
         self.resize(800, 600)
-        self.currentProjetk=None
         self.data=data
+        self.cnn_folder=None
+        self.img_folder=None
+        self.export_folder=None
+        self.currentProject=None
 
         # Create the menu bar
         menubar = self.menuBar()
@@ -121,16 +122,16 @@ class MainWindow(QMainWindow):
                 self.NeuralNetEditor.add_view(path)
 
     def settings(self):
-        dialog = settingDialog(self.projekt_folder, self)
+        dialog = settingDialog(data["projectFolder"], self)
         if dialog.exec_() == QtWidgets.QDialog.Accepted:
             project_folder = dialog.get_inputs()
-            self.projekt_folder=project_folder
+            data["projectFolder"]=project_folder
             self.data["projectFolder"]=project_folder
             with open("./settings.json", "w") as f:
                 json.dump(data,f)
 
     def new_projeck(self):
-        dialog = ProjectDialog(self.projekt_folder, self)
+        dialog = ProjectDialog(data["projectFolder"], self)
         if dialog.exec_() == QtWidgets.QDialog.Accepted:
             project_name, root_folder = dialog.get_inputs()
             ##print(f'Creating project "{project_name}" in folder "{project_folder}"')
@@ -145,16 +146,16 @@ class MainWindow(QMainWindow):
             open(jsonfile, 'w').close()
 
             # Create the traindata, cnn, and export folders
-            traindata_folder = os.path.join(project_folder, 'traindata')
-            os.makedirs(traindata_folder, exist_ok=True)
+            self.img_folder = os.path.join(project_folder, 'traindata')
             self.cnn_folder = os.path.join(project_folder, 'cnn')
+            self.export_folder = os.path.join(project_folder, 'export')
+            os.makedirs(self.img_folder, exist_ok=True)
             os.makedirs(self.cnn_folder, exist_ok=True)
-            export_folder = os.path.join(project_folder, 'export')
-            os.makedirs(export_folder, exist_ok=True)
+            os.makedirs(self.export_folder, exist_ok=True)
             self.treeview.setJson(jsonfile)
 
     def open_projeck(self):
-        folder = QtWidgets.QFileDialog.getExistingDirectory(self, 'Open Project',self.projekt_folder)
+        folder = QtWidgets.QFileDialog.getExistingDirectory(self, 'Open Project',data["projectFolder"])
         self.data["lastProject"]=folder
         if folder:
             folder_name = os.path.basename(folder)
@@ -162,15 +163,23 @@ class MainWindow(QMainWindow):
             file_path = os.path.join(folder, file_name)
             if os.path.exists(file_path):
                 self.treeview.setJson(file_path)
+        
+            self.img_folder = os.path.join(folder, 'traindata')
+            self.cnn_folder = os.path.join(folder, 'cnn')
+            self.export_folder = os.path.join(folder, 'export')
             
     def openlast(self):
         if "lastProject" in self.data:
             folder_name = os.path.basename(self.data["lastProject"])
             file_name = f'{folder_name}.json'
             file_path = os.path.join(self.data["lastProject"], file_name)
-            self.cnn_folder=os.path.join(self.data["lastProject"],"cnn")
             if os.path.exists(file_path):
                 self.treeview.setJson(file_path)
+
+            self.img_folder = os.path.join(self.data["lastProject"], 'traindata')
+            self.cnn_folder = os.path.join(self.data["lastProject"], 'cnn')
+            self.export_folder = os.path.join(self.data["lastProject"], 'export')
+
 
     def save_projeck(self):
         self.treeview.saveJson()
@@ -187,11 +196,10 @@ if __name__ == "__main__":
         data["projectFolder"]=folder_name
         with open("./settings.json", "w") as f:
                 json.dump(data,f)
-    else:
-        folder_name=data["projectFolder"]
+                
 
 
-    window = MainWindow(folder_name, data)
+    window = MainWindow(data)
     window.show()
     app.exec_()
 
