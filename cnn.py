@@ -1,17 +1,87 @@
-import tensorflow as tf
+import numpy as np
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Reshape, MaxPooling2D, Flatten, Conv2D
+from tensorflow.keras.utils import to_categorical
 
-# Define the training data
-x = [1, 2, 3, 4]
-y = [1, 3, 5, 7]
+from PIL import Image
+
+data = {
+    "Classes": [
+        "1",
+        "3"
+    ],
+    "Images": [
+        {
+            "label": "Test",
+            "File": "C:/Users/lucas/Documents/Python/GUI/Bild_KI_Trainer_Programm/image0.jpg",
+            "Yolo": {
+                "gx": 0,
+                "gy": 0,
+                "x": 0,
+                "y": 0,
+                "h":10,
+                "w":10,
+                "Class": 0
+            }
+        }
+    ],
+    "Yolo":{
+        "VerticalGridCount":13,
+        "HorizontalGridCount":13
+    }
+}
+
+# Extract information from data
+num_classes = len(data['Classes'])
+vgc = data['Yolo']['VerticalGridCount']
+hgc = data['Yolo']['HorizontalGridCount']
+output_size = 5 + num_classes
+
+# Create x and y datasets
+x = []
+y = []
+for image in data['Images']:
+    # Load image data into a numpy array
+    #img_data = np.load(image['File'], allow_pickle=True)
+    # Open the image file
+    img = Image.open(image['File'])
+
+    # Convert the image to a numpy array
+    img_data = np.array(img)
+    print(f"Input: {img_data}")
+    
+    x.append(img_data)
+    
+    # Create yolo output for image
+    yolo = image['Yolo']
+    gx, gy = yolo['gx'], yolo['gy']
+    output = np.zeros((vgc, hgc, output_size))
+    output[gy, gx, :5] = [yolo['x'], yolo['y'], yolo["w"], yolo["h"], 1]
+    output[gy, gx, 5 + yolo['Class']] = 1
+    print(f"Output: {output}")
+    y.append(output)
+
+x = np.array(x)
+y = np.array(y)
 
 # Define the model
-model = tf.keras.Sequential([tf.keras.layers.Dense(units=1, input_shape=[1])])
+model = Sequential()
+model.add(Conv2D(32, (3, 3), padding='same', activation='relu', input_shape=x.shape[1:]))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Conv2D(128, (3, 3), padding='same', activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Flatten())
+model.add(Dense(256, activation='relu'))
+model.add(Dense(vgc * hgc * output_size))
+model.add(Reshape((vgc, hgc, output_size)))
 
 # Compile the model
-model.compile(optimizer=tf.keras.optimizers.SGD(0.1), loss='mean_squared_error')
+model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
 
 # Train the model
-model.fit(x, y, epochs=200)
+model.fit(x, y, epochs=10)
 
-# Make a prediction
-print(model.predict([10]))
+# Save the trained model
+model.save('./trained_model.h5')

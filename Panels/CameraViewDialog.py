@@ -2,7 +2,7 @@ import sys
 from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtWidgets import QDialog, QLabel, QGridLayout, QLineEdit, QPushButton
 
-if not (__name__=="__main__") and False:
+if True:
     from .WebcamWidget import WebcamWidget
 else:
     from WebcamWidget import WebcamWidget
@@ -15,7 +15,7 @@ class CameraViewDialog(QDialog):
         self.setWindowTitle("PyQt Webcam Viewer")
         gridLayout = QGridLayout()
 
-        self.cam=WebcamWidget()        
+        self.cam=WebcamWidget()
 
         # Add input fields for x and y coordinates of rectangle
         self.xInput = QLineEdit(self)
@@ -45,9 +45,13 @@ class CameraViewDialog(QDialog):
         
         self.wInput.setValidator(QtGui.QIntValidator())
         self.wInput.textChanged.connect(self.updateGrid)
+        if GridWidth:
+            self.wInput.setReadOnly(True)
 
         self.hInput.setValidator(QtGui.QIntValidator())
         self.hInput.textChanged.connect(self.updateGrid)
+        if GridHeight:
+            self.hInput.setReadOnly(True)
 
         self.gxInput.setValidator(QtGui.QIntValidator())
         self.gxInput.textChanged.connect(self.updateGrid)
@@ -70,14 +74,21 @@ class CameraViewDialog(QDialog):
         gridLayout.addWidget(QLabel("Vertikal Splitcount:"), 5, 0)
         gridLayout.addWidget(self.gyInput, 5, 1)
 
-        # Add save and cancel buttons
+
         saveButton = QPushButton('Save', self)
+        saveButton.clicked.connect(self.saveIMG)
+
         cancelButton = QPushButton('Cancel', self)
+        cancelButton.clicked.connect(self.close)
+
         gridLayout.addWidget(saveButton, 6, 0)
         gridLayout.addWidget(cancelButton, 6, 1)
         layout=QtWidgets.QHBoxLayout(self)
         layout.addWidget(self.cam)
         layout.addLayout(gridLayout)
+
+    def saveIMG(self):
+        self.cam.capture_image()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -85,13 +96,17 @@ class CameraViewDialog(QDialog):
     
     def updateGrid(self,text):
         try:
-            x = int(self.xInput.text())
-            y = int(self.yInput.text())
             w = int(self.wInput.text())
             h = int(self.hInput.text())
+        except:
+            w = None
+            h = None
+        try:
+            x = int(self.xInput.text())
+            y = int(self.yInput.text())
             gx = int(self.gxInput.text())
             gy = int(self.gyInput.text())
-            self.cam.setGrid(x=x,y=y,horizontal_lines=gx,vertical_lines=gy)
+            self.cam.setGrid(x=x,y=y,width=w,height=h,horizontal_lines=gx,vertical_lines=gy)
         except Exception as e:
             print(e)
 

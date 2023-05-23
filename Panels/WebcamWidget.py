@@ -1,7 +1,7 @@
 import math
 from PyQt5.QtCore import Qt
 from PyQt5 import QtGui
-from PyQt5.QtMultimedia import QCamera, QCameraInfo
+from PyQt5.QtMultimedia import QCamera, QCameraInfo, QCameraImageCapture
 from PyQt5.QtMultimediaWidgets import QCameraViewfinder
 from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget
 import sys
@@ -15,7 +15,8 @@ class Overlay(QWidget):
         self.width = width
         self.height = height
         self.horizontal_lines = horizontal_lines
-        self.vertical_lines = vertical_lines
+        self.vertical_lines = vertical_lines#
+
 
     def update_grid(self, x=None, y=None, width=None, height=None, horizontal_lines=None, vertical_lines=None):
         if x is not None:
@@ -51,11 +52,13 @@ class Overlay(QWidget):
             print(e)
 
 class WebcamWidget(QWidget):
-    def __init__(self, CameraInfo=QCameraInfo.defaultCamera()):
+    def __init__(self, CameraInfo=QCameraInfo.defaultCamera(), imgPath="d:/Images/image"):
         super().__init__()
+        self.path=imgPath
         self.offsetX=0
         self.offsetY=0
         self.camera = QCamera(CameraInfo)
+        self.count=0
         self.viewfinder = QCameraViewfinder()
         size=self.viewfinder.size()
         self.width = size.width()-1
@@ -63,6 +66,9 @@ class WebcamWidget(QWidget):
 
         self.overlay = Overlay(self.viewfinder)
         self.camera.setViewfinder(self.viewfinder)
+
+        self.capture = QCameraImageCapture(self.camera)
+        self.capture.setCaptureDestination(QCameraImageCapture.CaptureToFile)
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.viewfinder)
@@ -96,6 +102,11 @@ class WebcamWidget(QWidget):
         x = ((width - w) // 2) +self.offsetX
         y = ((height - h) // 2)+self.offsetY
         return (x, y, w, h)
+    
+    def capture_image(self):
+        self.capture.capture(f"{self.path}{self.count}.jpg")
+        self.count+=1
+
 if __name__=="__main__":
     app = QApplication(sys.argv)
     window = WebcamWidget()

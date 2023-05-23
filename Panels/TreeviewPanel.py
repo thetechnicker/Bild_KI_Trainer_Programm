@@ -385,6 +385,10 @@ class TreeviewPanel(QtWidgets.QWidget):
 
                 path=os.path.join(main_path,f"{item_name}.py")
                 #print(path)
+                main_code=f"""#{item_name}.py"
+                
+                
+                """
                 with open(path, "w") as f:
                     f.write("#NeuronalNet.py")
 
