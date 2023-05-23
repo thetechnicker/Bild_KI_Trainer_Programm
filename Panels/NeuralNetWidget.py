@@ -49,7 +49,12 @@ class PythonHighlighter(QSyntaxHighlighter):
                            "\\btry\\b",
                            "\\bwhile\\b",
                            "\\bwith\\b",
-                           "\\byield\\b"]
+                           "\\byield\\b",
+                           "\\bSequential\\b",
+                           "\\bConv2D\\b",
+                           "\\bMaxPooling2D\\b",
+                           "\\bFlatten\\b",
+                           "\\bDense\\b"]
 
         rules = [(QRegExp(pattern), keywordFormat1) for pattern in keywordPatterns]
 
