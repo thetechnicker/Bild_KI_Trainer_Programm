@@ -105,7 +105,7 @@ class MainWindow(QMainWindow):
         layout.setAlignment(cam_panel, QtCore.Qt.AlignTop)
         main_layout.addLayout(layout)
         main_layout.addWidget(PythonConsole())
-        self.openlast()
+        #self.openlast()
 
     def closeEvent(self,event):
         #self.save_projeck()
@@ -147,15 +147,6 @@ class MainWindow(QMainWindow):
                 self.DatabaseFile=os.path.join(project_folder, f'{project_name}.db')
                 connection=sqlite3.connect(self.DatabaseFile)
                 DataBase=connection.cursor()
-
-                self.cnn_folder     = os.path.join(project_folder, "cnn")
-                self.img_folder     = os.path.join(project_folder, "img")
-                self.export_folder  = os.path.join(project_folder, "exports")
-                self.currentProject = project_folder
-                os.mkdir(self.cnn_folder)
-                os.mkdir(self.img_folder)
-                os.mkdir(self.export_folder)
-
                 DataBase.execute('''
                     CREATE TABLE IF NOT EXISTS classes (
                         id INTEGER PRIMARY KEY,
@@ -184,6 +175,15 @@ class MainWindow(QMainWindow):
                 connection.close()
             except Exception as e:
                 print(f"Error: {e}")
+            finally:
+                self.cnn_folder     = os.path.join(project_folder, "cnn")
+                self.img_folder     = os.path.join(project_folder, "img")
+                self.export_folder  = os.path.join(project_folder, "exports")
+                self.currentProject = project_folder
+                os.mkdir(self.cnn_folder)
+                os.mkdir(self.img_folder)
+                os.mkdir(self.export_folder)
+                self.treeview.setDB(self.DatabaseFile)
 
     def open_projeck(self):
         folder = QtWidgets.QFileDialog.getExistingDirectory(self, 'Open Project',data["projectFolder"])
@@ -206,12 +206,31 @@ class MainWindow(QMainWindow):
                     self.treeview.load_db(self.DatabaseFile)
             else:
                 print("Projectfolder has no database")
+        else:
+            print("error")
             
     def openlast(self):
         if "lastProject" in self.data:
             folder_name = os.path.basename(self.data["lastProject"])
             file_name = f'{folder_name}.db'
             file_path = os.path.join(self.data["lastProject"], file_name)
+            folder_name = os.path.basename(file_path)
+            file_name = f'{folder_name}.db'
+            self.DatabaseFile = os.path.join(folder_name, file_name)
+            if os.path.exists(self.DatabaseFile):
+                try:                
+                    connection=sqlite3.connect(self.DatabaseFile)
+                    connection.close()
+                except Exception as e:
+                    print(f"Error: {e}")
+                finally:
+                    self.cnn_folder     = os.path.join(folder_name, "cnn")
+                    self.img_folder     = os.path.join(folder_name, "img")
+                    self.export_folder  = os.path.join(folder_name, "exports")
+                    self.currentProject = folder_name
+                    self.treeview.load_db(self.DatabaseFile)
+            else:
+                print("Projectfolder has no database")
 
 
 

@@ -1,7 +1,5 @@
 import os
-import json
 import sqlite3
-import sys
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import Qt
 
@@ -145,20 +143,6 @@ class TreeviewPanel(QtWidgets.QWidget):
             item = self.model.itemFromIndex(index)
             if not item.is_non() and not item.is_folder():
                 self.model.removeRow(index.row(), index.parent())
-    #ToDelete
-    #def select_file(self):
-    #    file_dialog = QtWidgets.QFileDialog()
-    #    file_dialog.setNameFilter("JSON files (*.json)")
-    #    file_dialog.setFileMode(QtWidgets.QFileDialog.ExistingFile)
-    #    if file_dialog.exec_():            
-    #        self.model.clear()
-    #        self.model.setColumnCount(2)
-    #        self.model.setHeaderData(0, Qt.Horizontal, 'Name')
-    #        self.model.setHeaderData(1, Qt.Horizontal, 'Type')
-    #        self.tree_view.setModel(self.model)
-    #        self.tree_view.hideColumn(1)
-    #        self.file_path = file_dialog.selectedFiles()[0]
-    #        self.load_json(self.file_path)
 
     def get_item_by_name(self, name=None):
         if name==None or name=="":
@@ -176,29 +160,6 @@ class TreeviewPanel(QtWidgets.QWidget):
         root = self.model.invisibleRootItem()
         return search_children(root)
 
-    def load_json(self, file_path):
-        fail=False
-        data=None
-        with open(file_path, 'r') as f:
-            try:
-                data = json.load(f)
-                self.add_items(self.model.invisibleRootItem(), data)
-            except:
-                fail=True
-                data={
-                    "Classes": [
-                    ],
-                    "Neuronale Netze":[
-
-                    ],
-                    "Images": [
-
-                    ]
-                }
-                self.add_items(self.model.invisibleRootItem(), data)
-        if fail:
-            with open(file_path, "w") as f:
-                json.dump(data,f)
 
     def add_items(self, parent, data):
         #print(data)
@@ -299,7 +260,7 @@ class TreeviewPanel(QtWidgets.QWidget):
                 if item.hasChildren():
                     for j in range(item.rowCount()):
                         t=item.child(j).text()
-                        print(t)
+                        #print(t)
                         d.append(t)
                 structure["Neuronale Netze"]=d
             elif item.text()=="Images":
@@ -334,13 +295,6 @@ class TreeviewPanel(QtWidgets.QWidget):
                 structure["Images"]=d
         return structure
 
-
-    def saveJson(self):
-        d=self.get_structure()
-        #print(d)
-        if not d=={}:
-            with open(self.file_path, "w") as f:
-                json.dump(d,f)
 
     def add_item(self):
         dialog = AddDialog(self)
@@ -382,20 +336,20 @@ class TreeviewPanel(QtWidgets.QWidget):
             elif item_type == "Neural Net":
                 parent_name = "Neuronale Netze"
                 name = "cnn"
+                print(self.file_path)
+                # head, _ = os.path.split(self.file_path)
+                # main_path=os.path.join(head, "cnn" )
+                # if not os.path.exists(main_path):
+                #     os.makedirs(main_path, exist_ok=True)
 
-                head, _ = os.path.split(self.file_path)
-                main_path=os.path.join(head, "cnn" )
-                if not os.path.exists(main_path):
-                    os.makedirs(main_path, exist_ok=True)
+                # path=os.path.join(main_path,f"{item_name}.py")
 
-                path=os.path.join(main_path,f"{item_name}.py")
-                #print(path)
-                main_code=f"""#{item_name}.py"
-                
-                
-                """
-                with open(path, "w") as f:
-                    f.write("#NeuronalNet.py")
+                # print(path)
+                # main_code=f"""#{item_name}.py"""
+
+                # if not __name__ =="__main__":
+                #     with open(path, "w") as f:
+                #         f.write("")
 
             elif item_type == "Class":
                 parent_name = "Classes"
