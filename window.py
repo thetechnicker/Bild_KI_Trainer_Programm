@@ -91,7 +91,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central_widget)
 
         main_layout = QtWidgets.QVBoxLayout(central_widget)
-        """layout = QtWidgets.QHBoxLayout()
+        layout = QtWidgets.QHBoxLayout()
         self.treeview=TreeviewPanel()
         self.treeview.set_callback(self.Treeview_click_event)
 
@@ -103,7 +103,7 @@ class MainWindow(QMainWindow):
         cam_panel = CamPanel([0, 0, 640, 480, 1, 100])
         layout.addWidget(cam_panel)
         layout.setAlignment(cam_panel, QtCore.Qt.AlignTop)
-        main_layout.addLayout(layout)"""
+        main_layout.addLayout(layout)
         main_layout.addWidget(PythonConsole())
         self.openlast()
         
@@ -157,7 +157,31 @@ class MainWindow(QMainWindow):
                 os.mkdir(self.img_folder)
                 os.mkdir(self.export_folder)
 
-                self.DataBase.execute("Create Table trainings_daten (id INTEGER PRIMARY KEY AUTOINCREMENT, label TEXT, file TEXT, GridX INTEGER, GridY INTEGER, X REAL, Y REAL, H REAL, W REAL, ClassIndex INTEGER)")
+                self.DataBase.execute('''
+                    CREATE TABLE IF NOT EXISTS classes (
+                        id INTEGER PRIMARY KEY,
+                        name TEXT
+                    )
+                ''')
+                self.DataBase.execute('''
+                    CREATE TABLE IF NOT EXISTS neural_nets (
+                        id INTEGER PRIMARY KEY,
+                        name TEXT
+                    )
+                ''')
+                self.DataBase.execute('''
+                    CREATE TABLE IF NOT EXISTS images (
+                        id INTEGER PRIMARY KEY,
+                        label TEXT,
+                        file TEXT,
+                        gx INTEGER,
+                        gy INTEGER,
+                        x INTEGER,
+                        y INTEGER,
+                        class INTEGER
+                    )
+                ''')
+                
             except Exception as e:
                 print(f"Error: {e}")
 
@@ -173,7 +197,7 @@ class MainWindow(QMainWindow):
     def openlast(self):
         if "lastProject" in self.data:
             folder_name = os.path.basename(self.data["lastProject"])
-            file_name = f'{folder_name}.json'
+            file_name = f'{folder_name}.db'
             file_path = os.path.join(self.data["lastProject"], file_name)
 
 

@@ -1,5 +1,6 @@
 import os
 import json
+import sqlite3
 import sys
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import Qt
@@ -406,6 +407,90 @@ class TreeviewPanel(QtWidgets.QWidget):
                     parent.appendRow([name_item, type_item])
                 else:
                     self.model.appendRow([name_item, type_item])
+
+
+    def load_db(self, filename):
+        # Connect to the database
+        conn = sqlite3.connect(filename)
+        c = conn.cursor()
+    
+        # Create the tables if they don't exist
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS classes (
+                id INTEGER PRIMARY KEY,
+                name TEXT
+            )
+        ''')
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS neural_nets (
+                id INTEGER PRIMARY KEY,
+                name TEXT
+            )
+        ''')
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS images (
+                id INTEGER PRIMARY KEY,
+                label TEXT,
+                file TEXT,
+                gx INTEGER,
+                gy INTEGER,
+                x INTEGER,
+                y INTEGER,
+                class INTEGER
+            )
+        ''')
+    
+        # Load data from the database
+        data = {}
+        data['Classes'] = [row[0] for row in c.execute('SELECT name FROM classes')]
+        data['Neuronale Netze'] = [row[0] for row in c.execute('SELECT name FROM neural_nets')]
+        data['Images'] = []
+        for row in c.execute('SELECT label, file, gx, gy, x, y, class FROM images'):
+            img_data = {
+                'label': row[0],
+                'File': row[1],
+                'Yolo': {
+                    'gx': row[2],
+                    'gy': row[3],
+                    'x': row[4],
+                    'y': row[5],
+                    'Class': row[6]
+                }
+            }
+            data['Images'].append(img_data)
+    
+        # Close the database connection
+        conn.close()
+    
+        # Add items to the tree view
+        self.add_items(self.model.invisibleRootItem(), data)
+
+    def saveDb(self):
+        # Get the structure of the tree view
+        d = self.get_structure()
+
+        # Connect to the database
+        conn = sqlite3.connect('data.db')
+        c = conn.cursor()
+
+        # Clear the tables
+        c.execute('DELETE FROM classes')
+        c.execute('DELETE FROM neural_nets')
+        c.execute('DELETE FROM images')
+
+        # Insert data into the tables
+        for class_name in d['Classes']:
+            c.execute('INSERT INTO classes (name) VALUES (?)', (class_name,))
+        for net_name in d['Neuronale Netze']:
+            c.execute('INSERT INTO neural_nets (name) VALUES (?)', (net_name,))
+        for img_data in d['Images']:
+            yolo_data = img_data['Yolo']
+            values = (img_data['label'], img_data['File'], yolo_data['gx'], yolo_data['gy'], yolo_data['x'], yolo_data['y'], yolo_data['Class'])
+            c.execute('INSERT INTO images (label, file, gx, gy, x, y, class) VALUES (?, ?, ?, ?, ?, ?, ?)', values)
+
+        # Commit changes and close the database connection
+        conn.commit()
+        conn.close()
     
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
