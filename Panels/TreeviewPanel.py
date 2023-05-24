@@ -117,8 +117,8 @@ class TreeviewPanel(QtWidgets.QWidget):
         layout.addLayout(button_layout)
         self.callback=None
         self.tree_view.doubleClicked.connect(self.on_double_click)
-        if self.file_path and self.file_path.endswith('.json'):
-            self.load_json(self.file_path)
+        if self.file_path and self.file_path.endswith('.db'):
+            self.load_db(self.file_path)
 
     def on_double_click(self, index):
         item = self.model.itemFromIndex(index)
@@ -133,6 +133,10 @@ class TreeviewPanel(QtWidgets.QWidget):
         self.file_path=file
         self.load_json(file)
 
+    def setDB(self, file):
+        self.file_path=file
+        self.load_db(file)
+
     def remove_item(self):
         selected_indexes = self.tree_view.selectedIndexes()
 
@@ -141,20 +145,20 @@ class TreeviewPanel(QtWidgets.QWidget):
             item = self.model.itemFromIndex(index)
             if not item.is_non() and not item.is_folder():
                 self.model.removeRow(index.row(), index.parent())
-
-    def select_file(self):
-        file_dialog = QtWidgets.QFileDialog()
-        file_dialog.setNameFilter("JSON files (*.json)")
-        file_dialog.setFileMode(QtWidgets.QFileDialog.ExistingFile)
-        if file_dialog.exec_():            
-            self.model.clear()
-            self.model.setColumnCount(2)
-            self.model.setHeaderData(0, Qt.Horizontal, 'Name')
-            self.model.setHeaderData(1, Qt.Horizontal, 'Type')
-            self.tree_view.setModel(self.model)
-            self.tree_view.hideColumn(1)
-            self.file_path = file_dialog.selectedFiles()[0]
-            self.load_json(self.file_path)
+    #ToDelete
+    #def select_file(self):
+    #    file_dialog = QtWidgets.QFileDialog()
+    #    file_dialog.setNameFilter("JSON files (*.json)")
+    #    file_dialog.setFileMode(QtWidgets.QFileDialog.ExistingFile)
+    #    if file_dialog.exec_():            
+    #        self.model.clear()
+    #        self.model.setColumnCount(2)
+    #        self.model.setHeaderData(0, Qt.Horizontal, 'Name')
+    #        self.model.setHeaderData(1, Qt.Horizontal, 'Type')
+    #        self.tree_view.setModel(self.model)
+    #        self.tree_view.hideColumn(1)
+    #        self.file_path = file_dialog.selectedFiles()[0]
+    #        self.load_json(self.file_path)
 
     def get_item_by_name(self, name=None):
         if name==None or name=="":
@@ -355,7 +359,7 @@ class TreeviewPanel(QtWidgets.QWidget):
                 gy_item = EditableStandardItem("gy")
                 x_item = EditableStandardItem("x")
                 y_item = EditableStandardItem("y")
-                c_item = EditableStandardItem("c")
+                c_item = EditableStandardItem("Class")
 
                 file_item.appendRow([EditableStandardItem("unknown"),EditableStandardItem("val")])
                 gx_item.appendRow([EditableStandardItem("0"),EditableStandardItem("val")])
@@ -409,7 +413,9 @@ class TreeviewPanel(QtWidgets.QWidget):
                     self.model.appendRow([name_item, type_item])
 
 
-    def load_db(self, filename):
+    def load_db(self, filename=None):
+        if not filename:
+            filename=self.file_path
         # Connect to the database
         conn = sqlite3.connect(filename)
         c = conn.cursor()
@@ -465,12 +471,14 @@ class TreeviewPanel(QtWidgets.QWidget):
         # Add items to the tree view
         self.add_items(self.model.invisibleRootItem(), data)
 
-    def saveDb(self):
+    def saveDb(self, filename=None):
+        if not filename:
+            filename=self.file_path
         # Get the structure of the tree view
         d = self.get_structure()
 
         # Connect to the database
-        conn = sqlite3.connect('data.db')
+        conn = sqlite3.connect(filename)
         c = conn.cursor()
 
         # Clear the tables
@@ -494,7 +502,7 @@ class TreeviewPanel(QtWidgets.QWidget):
     
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
-    tree_view_panel = TreeviewPanel("C:/Users/lucas/Documents/Python/GUI/Bild_KI_Trainer_Programm/test.json")
+    tree_view_panel = TreeviewPanel("C:/Users/lucas/Documents/Python/GUI/Bild_KI_Trainer_Programm/test.db")
     tree_view_panel.show()
     app.exec_()
-    tree_view_panel.saveJson()
+    tree_view_panel.saveDb()

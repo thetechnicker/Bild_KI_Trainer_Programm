@@ -44,7 +44,7 @@ class MainWindow(QMainWindow):
         self.export_folder =None
         self.currentProject=None
 
-        self.connection=None
+        self.DatabaseFile=None
 
         # Create the menu bar
         menubar = self.menuBar()
@@ -106,7 +106,6 @@ class MainWindow(QMainWindow):
         main_layout.addLayout(layout)
         main_layout.addWidget(PythonConsole())
         self.openlast()
-        
 
     def closeEvent(self,event):
         #self.save_projeck()
@@ -145,9 +144,9 @@ class MainWindow(QMainWindow):
                 os.makedirs(project_folder, exist_ok=True)
 
                 # Create the projectname.json file
-                db=os.path.join(project_folder, f'{project_name}.db')
-                self.connection=sqlite3.connect(db)
-                self.DataBase=self.connection.cursor()
+                self.DatabaseFile=os.path.join(project_folder, f'{project_name}.db')
+                connection=sqlite3.connect(self.DatabaseFile)
+                DataBase=connection.cursor()
 
                 self.cnn_folder     = os.path.join(project_folder, "cnn")
                 self.img_folder     = os.path.join(project_folder, "img")
@@ -157,19 +156,19 @@ class MainWindow(QMainWindow):
                 os.mkdir(self.img_folder)
                 os.mkdir(self.export_folder)
 
-                self.DataBase.execute('''
+                DataBase.execute('''
                     CREATE TABLE IF NOT EXISTS classes (
                         id INTEGER PRIMARY KEY,
                         name TEXT
                     )
                 ''')
-                self.DataBase.execute('''
+                DataBase.execute('''
                     CREATE TABLE IF NOT EXISTS neural_nets (
                         id INTEGER PRIMARY KEY,
                         name TEXT
                     )
                 ''')
-                self.DataBase.execute('''
+                DataBase.execute('''
                     CREATE TABLE IF NOT EXISTS images (
                         id INTEGER PRIMARY KEY,
                         label TEXT,
@@ -182,6 +181,7 @@ class MainWindow(QMainWindow):
                     )
                 ''')
                 
+                connection.close()
             except Exception as e:
                 print(f"Error: {e}")
 
@@ -190,9 +190,22 @@ class MainWindow(QMainWindow):
         self.data["lastProject"]=folder
         if folder:
             folder_name = os.path.basename(folder)
-            file_name = f'{folder_name}.json'
-            file_path = os.path.join(folder, file_name)
-            
+            file_name = f'{folder_name}.db'
+            self.DatabaseFile = os.path.join(folder, file_name)
+            if os.path.exists(self.DatabaseFile):
+                try:                
+                    connection=sqlite3.connect(self.DatabaseFile)
+                    connection.close()
+                except Exception as e:
+                    print(f"Error: {e}")
+                finally:
+                    self.cnn_folder     = os.path.join(folder, "cnn")
+                    self.img_folder     = os.path.join(folder, "img")
+                    self.export_folder  = os.path.join(folder, "exports")
+                    self.currentProject = folder
+                    self.treeview.load_db(self.DatabaseFile)
+            else:
+                print("Projectfolder has no database")
             
     def openlast(self):
         if "lastProject" in self.data:
@@ -204,7 +217,7 @@ class MainWindow(QMainWindow):
 
     def save_projeck(self):
         pass
-        #self.treeview.saveJson()
+        self.treeview.saveDb()
         #self.NeuralNetEditor.save(self.cnn_folder)
 
 
