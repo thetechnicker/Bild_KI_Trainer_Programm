@@ -1,7 +1,6 @@
 import numpy as np
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Reshape, MaxPooling2D, Flatten, Conv2D
-from tensorflow.keras.utils import to_categorical
 
 from PIL import Image
 
