@@ -3,6 +3,7 @@ import os
 import sys
 from PyQt5.QtWidgets import QMainWindow, QApplication
 from PyQt5 import QtWidgets, QtCore
+import sqlite3
 
 #from Panels.cam_panel import cam_panel
 from Panels.CameraSettingWidget import CameraWidget as CamPanel
@@ -38,10 +39,12 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("AI Trainer")
         self.resize(800, 600)
         self.data=data
-        self.cnn_folder=None
-        self.img_folder=None
-        self.export_folder=None
+        self.cnn_folder    =None
+        self.img_folder    =None
+        self.export_folder =None
         self.currentProject=None
+
+        self.connection=None
 
         # Create the menu bar
         menubar = self.menuBar()
@@ -88,7 +91,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central_widget)
 
         main_layout = QtWidgets.QVBoxLayout(central_widget)
-        layout = QtWidgets.QHBoxLayout()
+        """layout = QtWidgets.QHBoxLayout()
         self.treeview=TreeviewPanel()
         self.treeview.set_callback(self.Treeview_click_event)
 
@@ -100,13 +103,13 @@ class MainWindow(QMainWindow):
         cam_panel = CamPanel([0, 0, 640, 480, 1, 100])
         layout.addWidget(cam_panel)
         layout.setAlignment(cam_panel, QtCore.Qt.AlignTop)
-        main_layout.addLayout(layout)
+        main_layout.addLayout(layout)"""
         main_layout.addWidget(PythonConsole())
         self.openlast()
         
 
     def closeEvent(self,event):
-        self.save_projeck()
+        #self.save_projeck()
         with open("./settings.json", "w") as f:
                 json.dump(data,f)
         event.accept()
@@ -138,21 +141,25 @@ class MainWindow(QMainWindow):
             # Create the project folder
             project_folder = os.path.join(root_folder, project_name)
             self.data["lastProject"]=project_folder
-            
-            os.makedirs(project_folder, exist_ok=True)
+            try:
+                os.makedirs(project_folder, exist_ok=True)
 
-            # Create the projectname.json file
-            jsonfile=os.path.join(project_folder, f'{project_name}.json')
-            open(jsonfile, 'w').close()
+                # Create the projectname.json file
+                db=os.path.join(project_folder, f'{project_name}.db')
+                self.connection=sqlite3.connect(db)
+                self.DataBase=self.connection.cursor()
 
-            # Create the traindata, cnn, and export folders
-            self.img_folder = os.path.join(project_folder, 'traindata')
-            self.cnn_folder = os.path.join(project_folder, 'cnn')
-            self.export_folder = os.path.join(project_folder, 'export')
-            os.makedirs(self.img_folder, exist_ok=True)
-            os.makedirs(self.cnn_folder, exist_ok=True)
-            os.makedirs(self.export_folder, exist_ok=True)
-            self.treeview.setJson(jsonfile)
+                self.cnn_folder     = os.path.join(project_folder, "cnn")
+                self.img_folder     = os.path.join(project_folder, "img")
+                self.export_folder  = os.path.join(project_folder, "exports")
+                self.currentProject = project_folder
+                os.mkdir(self.cnn_folder)
+                os.mkdir(self.img_folder)
+                os.mkdir(self.export_folder)
+
+                self.DataBase.execute("Create Table trainings_daten (id INTEGER PRIMARY KEY AUTOINCREMENT, label TEXT, file TEXT, GridX INTEGER, GridY INTEGER, X REAL, Y REAL, H REAL, W REAL, ClassIndex INTEGER)")
+            except Exception as e:
+                print(f"Error: {e}")
 
     def open_projeck(self):
         folder = QtWidgets.QFileDialog.getExistingDirectory(self, 'Open Project',data["projectFolder"])
@@ -161,33 +168,23 @@ class MainWindow(QMainWindow):
             folder_name = os.path.basename(folder)
             file_name = f'{folder_name}.json'
             file_path = os.path.join(folder, file_name)
-            if os.path.exists(file_path):
-                self.treeview.setJson(file_path)
-        
-            self.img_folder = os.path.join(folder, 'traindata')
-            self.cnn_folder = os.path.join(folder, 'cnn')
-            self.export_folder = os.path.join(folder, 'export')
+            
             
     def openlast(self):
         if "lastProject" in self.data:
             folder_name = os.path.basename(self.data["lastProject"])
             file_name = f'{folder_name}.json'
             file_path = os.path.join(self.data["lastProject"], file_name)
-            if os.path.exists(file_path):
-                self.treeview.setJson(file_path)
 
-            self.img_folder = os.path.join(self.data["lastProject"], 'traindata')
-            self.cnn_folder = os.path.join(self.data["lastProject"], 'cnn')
-            self.export_folder = os.path.join(self.data["lastProject"], 'export')
 
 
     def save_projeck(self):
-        self.treeview.saveJson()
-        self.NeuralNetEditor.save(self.cnn_folder)
+        pass
+        #self.treeview.saveJson()
+        #self.NeuralNetEditor.save(self.cnn_folder)
 
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
 
     with open("./settings.json") as f:
         data=json.load(f)
@@ -198,6 +195,7 @@ if __name__ == "__main__":
                 json.dump(data,f)
                 
 
+    app = QApplication(sys.argv)
 
     window = MainWindow(data)
     window.show()
