@@ -127,9 +127,6 @@ class TreeviewPanel(QtWidgets.QWidget):
     def set_callback(self, callback):
         self.callback=callback
 
-    def setJson(self, file):
-        self.file_path=file
-        self.load_json(file)
 
     def setDB(self, file):
         self.file_path=file
@@ -231,7 +228,20 @@ class TreeviewPanel(QtWidgets.QWidget):
                         parent.appendRow([name_item, type_item])
                     else:
                         self.model.appendRow([name_item, type_item])
-                   
+            elif key=="Yolo":
+                parent_name="Yolo"
+                self.model.appendRow([EditableStandardItem(parent_name),EditableStandardItem("folder")])
+                name = "Yolo"
+                for i in value:
+                    parent = self.get_item_by_name(parent_name)
+    
+                    name_item = EditableStandardItem(i)
+                    type_item = EditableStandardItem(name)
+    
+                    if parent:
+                        parent.appendRow([name_item, type_item])
+                    else:
+                        self.model.appendRow([name_item, type_item])
 
 
     def find_item(self, path_parts):
@@ -399,7 +409,14 @@ class TreeviewPanel(QtWidgets.QWidget):
                 class INTEGER
             )
         ''')
-    
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS Yolo (
+                id INTEGER AUTO_INCREMENT NOT NULL,
+                label TEXT,
+                value ENUM,
+                PRIMARY KEY (id)
+            )
+        ''')
         # Load data from the database
         data = {}
         data['Classes'] = [row[0] for row in c.execute('SELECT name FROM classes')]
@@ -419,6 +436,12 @@ class TreeviewPanel(QtWidgets.QWidget):
             }
             data['Images'].append(img_data)
     
+        data["Yolo"]=[]
+        for row in c.execute("SELECT label, value FROM Yolo"):
+            Yolo={
+                row[0]: row[1]
+            }
+            data["Yolo"].append(Yolo)
         # Close the database connection
         conn.close()
     

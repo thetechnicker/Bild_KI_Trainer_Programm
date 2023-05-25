@@ -172,10 +172,25 @@ class MainWindow(QMainWindow):
                     )
                 ''')
                 
+                DataBase.execute('''
+                    CREATE TABLE IF NOT EXISTS Yolo (
+                        id INTEGER AUTO_INCREMENT NOT NULL,
+                        label TEXT,
+                        value ,
+                        PRIMARY KEY (id)
+                    )
+                ''')
+                for k, i in {"VerticalGridCount":13, "HorizontalGridCount":13}.items():
+                    DataBase.execute(
+                        f"""
+                        INSERT INTO Propertys (label, value) VALUES ({k}, {i}
+                        """
+                    )
+                connection.commit()
                 connection.close()
             except Exception as e:
                 print(f"Error: {e}")
-            finally:
+            else:
                 self.cnn_folder     = os.path.join(project_folder, "cnn")
                 self.img_folder     = os.path.join(project_folder, "img")
                 self.export_folder  = os.path.join(project_folder, "exports")
@@ -203,7 +218,7 @@ class MainWindow(QMainWindow):
                     self.img_folder     = os.path.join(folder, "img")
                     self.export_folder  = os.path.join(folder, "exports")
                     self.currentProject = folder
-                    self.treeview.load_db(self.DatabaseFile)
+                    self.treeview.setDB(self.DatabaseFile)
             else:
                 print("Projectfolder has no database")
         else:
@@ -228,7 +243,7 @@ class MainWindow(QMainWindow):
                     self.img_folder     = os.path.join(folder_name, "img")
                     self.export_folder  = os.path.join(folder_name, "exports")
                     self.currentProject = folder_name
-                    self.treeview.load_db(self.DatabaseFile)
+                    self.treeview.setDB(self.DatabaseFile)
             else:
                 print("Projectfolder has no database")
 
