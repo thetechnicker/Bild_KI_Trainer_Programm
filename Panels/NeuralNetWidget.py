@@ -19,7 +19,11 @@ class PythonHighlighter(QSyntaxHighlighter):
                            "\\bConv2D\\b",
                            "\\bMaxPooling2D\\b",
                            "\\bFlatten\\b",
-                           "\\bDense\\b"]
+                           "\\bDense\\b",
+                           "\\badd\\b",
+                           "\\bpadding\\b",
+                           "\\bactivation\\b",
+                           "\\bpool_size\\b"]
 
         rules = [(QRegExp(pattern), keywordFormat1) for pattern in keywordPatterns]
 
@@ -32,9 +36,36 @@ class PythonHighlighter(QSyntaxHighlighter):
         string_pattern = QRegExp('"(?:[^"\\\\]|\\\\.)*"')
         rules.append((string_pattern, green_format))
 
+        string_pattern = QRegExp("'(?:[^'\\\\]|\\\\.)*'")
+        rules.append((string_pattern, green_format))
+        
+
+        string_pattern = QRegExp('"""(?:[^"\\\\]|\\\\.)*"""')
+        rules.append((string_pattern, green_format))
+
+        string_pattern = QRegExp("'''(?:[^'\\\\]|\\\\.)''*'")
+        rules.append((string_pattern, green_format))
+
         self.highlightingRules = rules
+        self.green_format=green_format
+        self.ismultiLine=False
+
 
     def highlightBlock(self, text):
+        #print(f"test: {text}")
+        if "'''" in text or '"""' in text:
+            if not self.ismultiLine:
+                self.ismultiLine=True
+                self.setFormat(0, len(text), self.green_format)
+            else:
+                self.ismultiLine=False
+                self.setFormat(0, len(text), self.green_format)
+            expression = QRegExp("'''(?:[^'\\\\]|\\\\.)*'''")
+            index = expression.indexIn(text)
+            expression = QRegExp('"""(?:[^"\\\\]|\\\\.)*"""')
+        elif self.ismultiLine:
+            self.setFormat(0, len(text), self.green_format)
+
         for pattern, format in self.highlightingRules:
             expression = QRegExp(pattern)
             index = expression.indexIn(text)
@@ -120,6 +151,6 @@ class FileEditor(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = FileEditor()
-    window.add_view('./cnn.py')
+    window.add_view('./neuralNet.pynns')
     window.show()
     app.exec_()

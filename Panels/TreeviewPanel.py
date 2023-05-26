@@ -352,10 +352,10 @@ class TreeviewPanel(QtWidgets.QWidget):
                 # if not os.path.exists(main_path):
                 #     os.makedirs(main_path, exist_ok=True)
 
-                # path=os.path.join(main_path,f"{item_name}.py")
+                # path=os.path.join(main_path,f"{item_name}.pynns")
 
                 # print(path)
-                # main_code=f"""#{item_name}.py"""
+                # main_code=f"""#{item_name}.pynns"""
 
                 # if not __name__ =="__main__":
                 #     with open(path, "w") as f:
