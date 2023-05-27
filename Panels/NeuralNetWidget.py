@@ -60,9 +60,7 @@ class PythonHighlighter(QSyntaxHighlighter):
             else:
                 self.ismultiLine=False
                 self.setFormat(0, len(text), self.green_format)
-            expression = QRegExp("'''(?:[^'\\\\]|\\\\.)*'''")
-            index = expression.indexIn(text)
-            expression = QRegExp('"""(?:[^"\\\\]|\\\\.)*"""')
+               
         elif self.ismultiLine:
             self.setFormat(0, len(text), self.green_format)
 
