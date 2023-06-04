@@ -93,14 +93,18 @@ class FileEditor(QWidget):
         self.ScriptThread=None
     
     def runCode(self):
-        index = self.tabWidget.currentIndex()
-        tab_text = self.tabWidget.widget(index).toPlainText()
-        if not self.ScriptThread:
-            self.ScriptThread= threading.Thread(target=self.run_script,args=(tab_text,self.on_thread_finished))
-            self.ScriptThread.setDaemon(True)
-            self.ScriptThread.start()
-        else:
-            pass
+        try:
+            index = self.tabWidget.currentIndex()
+            tab_text = self.tabWidget.widget(index).toPlainText()
+            if not self.ScriptThread:
+                self.ScriptThread= threading.Thread(target=self.run_script,args=(tab_text,self.on_thread_finished))
+                self.ScriptThread.setDaemon(True)
+                self.ScriptThread.start()
+            else:
+                pass
+        except Exception as e:
+            print(f"error: {e}")
+
 
     def run_script(self, text, calback):
         exec(text)

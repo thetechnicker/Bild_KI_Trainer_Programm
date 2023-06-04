@@ -159,7 +159,7 @@ class TreeviewPanel(QtWidgets.QWidget):
 
 
     def add_items(self, parent, data):
-        #print(data)
+        print(data)
         for key, value in data.items():
             #print(f"{key}: {value}")
             if key=="Images":
@@ -232,8 +232,12 @@ class TreeviewPanel(QtWidgets.QWidget):
                 parent_name="Yolo"
                 self.model.appendRow([EditableStandardItem(parent_name),EditableStandardItem("folder")])
                 name = "Yolo"
-                for i in value:
+                for v in value:
+                    k=list(v.keys())[0]
+                    i=v[k]
                     parent = self.get_item_by_name(parent_name)
+                    parent.appendRow([EditableStandardItem(k),EditableStandardItem("folder")])
+                    parent=self.get_item_by_name(k)
     
                     name_item = EditableStandardItem(i)
                     type_item = EditableStandardItem(name)
@@ -294,7 +298,10 @@ class TreeviewPanel(QtWidgets.QWidget):
                                             try:
                                                 p=item.child(l).text()
                                                 t=item.child(l).child(0).text()
-                                                Yolo_data[p]=int(t)
+                                                try:
+                                                    Yolo_data[p]=int(t)
+                                                except:
+                                                    Yolo_data[p]=t
                                             except:
                                                 pass
                                     img_data["Yolo"]=Yolo_data
@@ -303,6 +310,18 @@ class TreeviewPanel(QtWidgets.QWidget):
                         d.append(img_data)
                         
                 structure["Images"]=d
+            elif item.text()=="Yolo":
+                data={}
+                if item.hasChildren():
+                    for j in range(item.rowCount()):
+                        s_item=item.child(j)
+                        key=s_item.text()
+                        if s_item.hasChildren():
+                            value=s_item.child(0).text()
+                            data[key]= value
+
+                structure["Yolo"]=data
+
         return structure
 
 
@@ -444,7 +463,7 @@ class TreeviewPanel(QtWidgets.QWidget):
             data["Yolo"].append(Yolo)
         # Close the database connection
         conn.close()
-    
+        print(data)
         # Add items to the tree view
         self.add_items(self.model.invisibleRootItem(), data)
 
@@ -453,7 +472,7 @@ class TreeviewPanel(QtWidgets.QWidget):
             filename=self.file_path
         # Get the structure of the tree view
         d = self.get_structure()
-
+        print(d)
         # Connect to the database
         conn = sqlite3.connect(filename)
         c = conn.cursor()
@@ -462,6 +481,7 @@ class TreeviewPanel(QtWidgets.QWidget):
         c.execute('DELETE FROM classes')
         c.execute('DELETE FROM neural_nets')
         c.execute('DELETE FROM images')
+        c.execute('DELETE FROM Yolo')
 
         # Insert data into the tables
         for class_name in d['Classes']:
@@ -472,7 +492,8 @@ class TreeviewPanel(QtWidgets.QWidget):
             yolo_data = img_data['Yolo']
             values = (img_data['label'], img_data['File'], yolo_data['gx'], yolo_data['gy'], yolo_data['x'], yolo_data['y'], yolo_data['Class'])
             c.execute('INSERT INTO images (label, file, gx, gy, x, y, class) VALUES (?, ?, ?, ?, ?, ?, ?)', values)
-
+        for key, value in d["Yolo"].items():
+            c.execute(f'INSERT INTO Yolo (label, value) VALUES ("{key}", "{value}")')
         # Commit changes and close the database connection
         conn.commit()
         conn.close()

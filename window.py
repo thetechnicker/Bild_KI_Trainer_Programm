@@ -92,19 +92,26 @@ class MainWindow(QMainWindow):
 
         main_layout = QtWidgets.QVBoxLayout(central_widget)
         layout = QtWidgets.QHBoxLayout()
-        self.treeview=TreeviewPanel()
+        self.treeview = TreeviewPanel()
         self.treeview.set_callback(self.Treeview_click_event)
 
-        layout.addWidget(self.treeview)
+        self.NeuralNetEditor = NeuralNetEditor()
 
-        self.NeuralNetEditor=NeuralNetEditor()
-        layout.addWidget(self.NeuralNetEditor)
-    
         cam_panel = CamPanel([0, 0, 640, 480, 1, 100])
-        layout.addWidget(cam_panel)
         layout.setAlignment(cam_panel, QtCore.Qt.AlignTop)
-        main_layout.addLayout(layout)
-        main_layout.addWidget(PythonConsole())
+
+        # Create a horizontal splitter and add the treeview and NeuralNetEditor
+        h_splitter = QtWidgets.QSplitter()
+        h_splitter.addWidget(self.treeview)
+        h_splitter.addWidget(self.NeuralNetEditor)
+        h_splitter.addWidget(cam_panel)
+
+        # Create a vertical splitter and add the horizontal splitter and cam_panel
+        v_splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
+        v_splitter.addWidget(h_splitter)
+        v_splitter.addWidget(PythonConsole())
+
+        main_layout.addWidget(v_splitter)
         #self.openlast()
 
     def closeEvent(self,event):
@@ -113,7 +120,7 @@ class MainWindow(QMainWindow):
                 json.dump(data,f)
         event.accept()
 
-    
+
     def Treeview_click_event(self, item, parent):
         print(item.text())
         if parent:
@@ -140,6 +147,7 @@ class MainWindow(QMainWindow):
             # Create the project folder
             project_folder = os.path.join(root_folder, project_name)
             self.data["lastProject"]=project_folder
+            #if True:
             try:
                 os.makedirs(project_folder, exist_ok=True)
 
@@ -171,10 +179,10 @@ class MainWindow(QMainWindow):
                         class INTEGER
                     )
                 ''')
-                
+
                 DataBase.execute('''
                     CREATE TABLE IF NOT EXISTS Yolo (
-                        id INTEGER AUTO_INCREMENT NOT NULL,
+                        id INTEGER AUTO_INCREMENT,
                         label TEXT,
                         value ,
                         PRIMARY KEY (id)
@@ -183,10 +191,37 @@ class MainWindow(QMainWindow):
                 for k, i in {"VerticalGridCount":13, "HorizontalGridCount":13}.items():
                     DataBase.execute(
                         f"""
-                        INSERT INTO Propertys (label, value) VALUES ({k}, {i}
+                        INSERT INTO Yolo (label, value) VALUES ('{k}', '{i}')
                         """
                     )
+
                 connection.commit()
+
+                data_db = {}
+                data_db['Classes'] = [row[0] for row in connection.execute('SELECT name FROM classes')]
+                data_db['Neuronale Netze'] = [row[0] for row in connection.execute('SELECT name FROM neural_nets')]
+                data_db['Images'] = []
+                for row in connection.execute('SELECT label, file, gx, gy, x, y, class FROM images'):
+                    img_data = {
+                        'label': row[0],
+                        'File': row[1],
+                        'Yolo': {
+                            'gx': row[2],
+                            'gy': row[3],
+                            'x': row[4],
+                            'y': row[5],
+                            'Class': row[6]
+                        }
+                    }
+                    data_db['Images'].append(img_data)
+
+                data_db["Yolo"]=[]
+                for row in connection.execute("SELECT label, value FROM Yolo"):
+                    Yolo={
+                        row[0]: row[1]
+                    }
+                    data_db["Yolo"].append(Yolo)
+                print(data_db)
                 connection.close()
             except Exception as e:
                 print(f"Error: {e}")
@@ -199,6 +234,7 @@ class MainWindow(QMainWindow):
                 os.mkdir(self.img_folder)
                 os.mkdir(self.export_folder)
                 self.treeview.setDB(self.DatabaseFile)
+                self.setWindowTitle(f"AI Trainer\t\t{self.currentProject}")
 
     def open_projeck(self):
         folder = QtWidgets.QFileDialog.getExistingDirectory(self, 'Open Project',data["projectFolder"])
@@ -219,11 +255,12 @@ class MainWindow(QMainWindow):
                     self.export_folder  = os.path.join(folder, "exports")
                     self.currentProject = folder
                     self.treeview.setDB(self.DatabaseFile)
+                    self.setWindowTitle(f"AI Trainer\t\t{self.currentProject}")
             else:
                 print("Projectfolder has no database")
         else:
             print("error")
-            
+
     def openlast(self):
         if "lastProject" in self.data:
             folder_name = os.path.basename(self.data["lastProject"])
@@ -244,18 +281,22 @@ class MainWindow(QMainWindow):
                     self.export_folder  = os.path.join(folder_name, "exports")
                     self.currentProject = folder_name
                     self.treeview.setDB(self.DatabaseFile)
+                    self.setWindowTitle(f"AI Trainer\t\t{self.currentProject}")
             else:
                 print("Projectfolder has no database")
 
 
 
     def save_projeck(self):
-        pass
-        self.treeview.saveDb()
-        #self.NeuralNetEditor.save(self.cnn_folder)
+        try:
+            self.treeview.saveDb()
+            #self.NeuralNetEditor.save(self.cnn_folder)
+        except Exception as e:
+            print(f"error: {e}")
 
 
 if __name__ == "__main__":
+    app = QApplication(sys.argv)
 
     with open("./settings.json") as f:
         data=json.load(f)
@@ -264,12 +305,7 @@ if __name__ == "__main__":
         data["projectFolder"]=folder_name
         with open("./settings.json", "w") as f:
                 json.dump(data,f)
-                
-
-    app = QApplication(sys.argv)
 
     window = MainWindow(data)
     window.show()
     app.exec_()
-
-#FileEditor
