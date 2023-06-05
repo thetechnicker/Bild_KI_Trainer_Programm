@@ -145,10 +145,14 @@ class MainWindow(QMainWindow):
             project_name, root_folder = dialog.get_inputs()
             ##print(f'Creating project "{project_name}" in folder "{project_folder}"')
             # Create the project folder
-            project_folder = os.path.join(root_folder, project_name)
-            self.data["lastProject"]=project_folder
             #if True:
             try:
+                if "\\" in project_name or "/" in project_name :
+                    raise Exception("Project Name can not contain \\ or /")
+                
+                project_folder = os.path.join(root_folder, project_name)
+                self.data["lastProject"]=project_folder
+                
                 os.makedirs(project_folder, exist_ok=True)
 
                 # Create the projectname.json file
