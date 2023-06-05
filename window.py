@@ -101,23 +101,37 @@ class MainWindow(QMainWindow):
         layout.setAlignment(cam_panel, QtCore.Qt.AlignTop)
 
         # Create a horizontal splitter and add the treeview and NeuralNetEditor
-        h_splitter = QtWidgets.QSplitter()
-        h_splitter.addWidget(self.treeview)
-        h_splitter.addWidget(self.NeuralNetEditor)
-        h_splitter.addWidget(cam_panel)
+        self.h_splitter = QtWidgets.QSplitter()
+        self.h_splitter.addWidget(self.treeview)
+        self.h_splitter.addWidget(self.NeuralNetEditor)
+        self.h_splitter.addWidget(cam_panel)
+        self.h_splitter.setSizes([10, 25, 10])
 
         # Create a vertical splitter and add the horizontal splitter and cam_panel
-        v_splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
-        v_splitter.addWidget(h_splitter)
-        v_splitter.addWidget(PythonConsole())
+        self.v_splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
+        self.v_splitter.addWidget(self.h_splitter)
+        self.v_splitter.addWidget(PythonConsole())
+        self.v_splitter.setSizes([100, 1])
+        
+        if "h_sizes" in data and "v_sizes" in data:
+            h_sizes=data["h_sizes"]
+            v_sizes=data["v_sizes"]
+            self.h_splitter.setSizes(h_sizes)
+            self.v_splitter.setSizes(v_sizes)
 
-        main_layout.addWidget(v_splitter)
+        main_layout.addWidget(self.v_splitter)
         #self.openlast()
 
     def closeEvent(self,event):
         #self.save_projeck()
+        
+        h_sizes = self.h_splitter.sizes()
+        v_sizes = self.v_splitter.sizes()
+        
+        self.data["h_sizes"]= h_sizes
+        self.data["v_sizes"]= v_sizes
         with open("./settings.json", "w") as f:
-                json.dump(data,f)
+            json.dump(self.data,f)
         event.accept()
 
 
@@ -198,6 +212,7 @@ class MainWindow(QMainWindow):
                         INSERT INTO Yolo (label, value) VALUES ('{k}', '{i}')
                         """
                     )
+                
 
                 connection.commit()
 
