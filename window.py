@@ -84,8 +84,8 @@ class MainWindow(QMainWindow):
 
         # Create the window menu and add actions
         window_menu = menubar.addMenu('Window')
-        trainingsdaten_action = QtWidgets.QAction('Trainingsdaten', self, checkable=True)
-        window_menu.addAction(trainingsdaten_action)
+        #trainingsdaten_action = QtWidgets.QAction('Trainingsdaten', self, checkable=True)
+        #window_menu.addAction(trainingsdaten_action)
 
         central_widget = QtWidgets.QWidget()
         self.setCentralWidget(central_widget)
@@ -122,12 +122,28 @@ class MainWindow(QMainWindow):
         main_layout.addWidget(self.v_splitter)
         #self.openlast()
 
+        # initialising optionMenü items
+        new_class = QtWidgets.QAction('Create new Class', self)
+        new_class.setShortcut('Ctrl+Shift+c')
+        new_class.triggered.connect(lambda: self.treeview.add_item("Class"))
+        options_menu.addAction(new_class)
+
+        new_image = QtWidgets.QAction('Create new Image', self)
+        new_image.setShortcut('Ctrl+Shift+i')
+        new_image.triggered.connect(lambda: self.treeview.add_item("Image"))
+        options_menu.addAction(new_image)
+
+        new_cnn = QtWidgets.QAction('Create new Neuralnet', self)
+        new_cnn.setShortcut('Ctrl+Shift+n')
+        new_cnn.triggered.connect(lambda: self.treeview.add_item("Neural Net"))
+        options_menu.addAction(new_cnn)
+
     def closeEvent(self,event):
         #self.save_projeck()
         
         h_sizes = self.h_splitter.sizes()
         v_sizes = self.v_splitter.sizes()
-        
+         
         self.data["h_sizes"]= h_sizes
         self.data["v_sizes"]= v_sizes
         with open("./settings.json", "w") as f:
@@ -139,7 +155,7 @@ class MainWindow(QMainWindow):
         print(item.text())
         if parent:
             print(parent.text())
-            if parent.text()=="Neuronale Netze":
+            if parent.text()=="Neuronale Netze" and False:
                 print("test")
                 path=os.path.join(self.cnn_folder,f"{item.text()}.py")
                 self.NeuralNetEditor.add_view(path)
