@@ -1,6 +1,5 @@
 import os
-import json
-import sys
+import sqlite3
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import Qt
 
@@ -116,8 +115,8 @@ class TreeviewPanel(QtWidgets.QWidget):
         layout.addLayout(button_layout)
         self.callback=None
         self.tree_view.doubleClicked.connect(self.on_double_click)
-        if self.file_path and self.file_path.endswith('.json'):
-            self.load_json(self.file_path)
+        if self.file_path and self.file_path.endswith('.db'):
+            self.load_db(self.file_path)
 
     def on_double_click(self, index):
         item = self.model.itemFromIndex(index)
@@ -128,9 +127,10 @@ class TreeviewPanel(QtWidgets.QWidget):
     def set_callback(self, callback):
         self.callback=callback
 
-    def setJson(self, file):
+
+    def setDB(self, file):
         self.file_path=file
-        self.load_json(file)
+        self.load_db(file)
 
     def remove_item(self):
         selected_indexes = self.tree_view.selectedIndexes()
@@ -140,20 +140,6 @@ class TreeviewPanel(QtWidgets.QWidget):
             item = self.model.itemFromIndex(index)
             if not item.is_non() and not item.is_folder():
                 self.model.removeRow(index.row(), index.parent())
-
-    def select_file(self):
-        file_dialog = QtWidgets.QFileDialog()
-        file_dialog.setNameFilter("JSON files (*.json)")
-        file_dialog.setFileMode(QtWidgets.QFileDialog.ExistingFile)
-        if file_dialog.exec_():            
-            self.model.clear()
-            self.model.setColumnCount(2)
-            self.model.setHeaderData(0, Qt.Horizontal, 'Name')
-            self.model.setHeaderData(1, Qt.Horizontal, 'Type')
-            self.tree_view.setModel(self.model)
-            self.tree_view.hideColumn(1)
-            self.file_path = file_dialog.selectedFiles()[0]
-            self.load_json(self.file_path)
 
     def get_item_by_name(self, name=None):
         if name==None or name=="":
@@ -171,32 +157,9 @@ class TreeviewPanel(QtWidgets.QWidget):
         root = self.model.invisibleRootItem()
         return search_children(root)
 
-    def load_json(self, file_path):
-        fail=False
-        data=None
-        with open(file_path, 'r') as f:
-            try:
-                data = json.load(f)
-                self.add_items(self.model.invisibleRootItem(), data)
-            except:
-                fail=True
-                data={
-                    "Classes": [
-                    ],
-                    "Neuronale Netze":[
-
-                    ],
-                    "Images": [
-
-                    ]
-                }
-                self.add_items(self.model.invisibleRootItem(), data)
-        if fail:
-            with open(file_path, "w") as f:
-                json.dump(data,f)
 
     def add_items(self, parent, data):
-        #print(data)
+        print(data)
         for key, value in data.items():
             #print(f"{key}: {value}")
             if key=="Images":
@@ -265,7 +228,24 @@ class TreeviewPanel(QtWidgets.QWidget):
                         parent.appendRow([name_item, type_item])
                     else:
                         self.model.appendRow([name_item, type_item])
-                   
+            elif key=="Yolo":
+                parent_name="Yolo"
+                self.model.appendRow([EditableStandardItem(parent_name),EditableStandardItem("folder")])
+                name = "Yolo"
+                for v in value:
+                    k=list(v.keys())[0]
+                    i=v[k]
+                    parent = self.get_item_by_name(parent_name)
+                    parent.appendRow([EditableStandardItem(k),EditableStandardItem("folder")])
+                    parent=self.get_item_by_name(k)
+    
+                    name_item = EditableStandardItem(i)
+                    type_item = EditableStandardItem(name)
+    
+                    if parent:
+                        parent.appendRow([name_item, type_item])
+                    else:
+                        self.model.appendRow([name_item, type_item])
 
 
     def find_item(self, path_parts):
@@ -294,7 +274,7 @@ class TreeviewPanel(QtWidgets.QWidget):
                 if item.hasChildren():
                     for j in range(item.rowCount()):
                         t=item.child(j).text()
-                        print(t)
+                        #print(t)
                         d.append(t)
                 structure["Neuronale Netze"]=d
             elif item.text()=="Images":
@@ -318,7 +298,10 @@ class TreeviewPanel(QtWidgets.QWidget):
                                             try:
                                                 p=item.child(l).text()
                                                 t=item.child(l).child(0).text()
-                                                Yolo_data[p]=int(t)
+                                                try:
+                                                    Yolo_data[p]=int(t)
+                                                except:
+                                                    Yolo_data[p]=t
                                             except:
                                                 pass
                                     img_data["Yolo"]=Yolo_data
@@ -327,89 +310,221 @@ class TreeviewPanel(QtWidgets.QWidget):
                         d.append(img_data)
                         
                 structure["Images"]=d
+            elif item.text()=="Yolo":
+                data={}
+                if item.hasChildren():
+                    for j in range(item.rowCount()):
+                        s_item=item.child(j)
+                        key=s_item.text()
+                        if s_item.hasChildren():
+                            value=s_item.child(0).text()
+                            data[key]= value
+
+                structure["Yolo"]=data
+
         return structure
 
 
-    def saveJson(self):
-        d=self.get_structure()
-        #print(d)
-        if not d=={}:
-            with open(self.file_path, "w") as f:
-                json.dump(d,f)
+    def add_item(self, Ditem_type=None):
+        try:
+            dialog=None
+            if not Ditem_type:
+                dialog = AddDialog(self)
 
-    def add_item(self):
-        dialog = AddDialog(self)
+            if dialog or Ditem_type:
+                item_type=None
+                item_name=None
+                if Ditem_type:
+                    item_type=Ditem_type
+                    item_name=f"New {Ditem_type}"
+                elif dialog.exec_() == QtWidgets.QDialog.Accepted:
+                    item_type, item_name = dialog.get_data()
 
-        if dialog.exec_() == QtWidgets.QDialog.Accepted:
-            item_type, item_name = dialog.get_data()
+                name = ""
+                parent_name=""
+                if item_type == "Image":
+                    parent = self.get_item_by_name("Images")
+                    name_item = EditableStandardItem(item_name)
+                    file_item = EditableStandardItem("File")
+                    yolo_item = EditableStandardItem("Yolo")
+                    gx_item = EditableStandardItem("gx")
+                    gy_item = EditableStandardItem("gy")
+                    x_item = EditableStandardItem("x")
+                    y_item = EditableStandardItem("y")
+                    c_item = EditableStandardItem("Class")
 
-            name = ""
-            parent_name=""
-            if item_type == "Image":
-                parent = self.get_item_by_name("Images")
-                name_item = EditableStandardItem(item_name)
-                file_item = EditableStandardItem("File")
-                yolo_item = EditableStandardItem("Yolo")
-                gx_item = EditableStandardItem("gx")
-                gy_item = EditableStandardItem("gy")
-                x_item = EditableStandardItem("x")
-                y_item = EditableStandardItem("y")
-                c_item = EditableStandardItem("c")
+                    file_item.appendRow([EditableStandardItem("unknown"),EditableStandardItem("val")])
+                    gx_item.appendRow([EditableStandardItem("0"),EditableStandardItem("val")])
+                    gy_item.appendRow([EditableStandardItem("0"),EditableStandardItem("val")])
+                    x_item.appendRow([EditableStandardItem("0"),EditableStandardItem("val")])
+                    y_item.appendRow([EditableStandardItem("0"),EditableStandardItem("val")])
+                    c_item.appendRow([EditableStandardItem("0"),EditableStandardItem("val")])
 
-                file_item.appendRow([EditableStandardItem("unknown"),EditableStandardItem("val")])
-                gx_item.appendRow([EditableStandardItem("0"),EditableStandardItem("val")])
-                gy_item.appendRow([EditableStandardItem("0"),EditableStandardItem("val")])
-                x_item.appendRow([EditableStandardItem("0"),EditableStandardItem("val")])
-                y_item.appendRow([EditableStandardItem("0"),EditableStandardItem("val")])
-                c_item.appendRow([EditableStandardItem("0"),EditableStandardItem("val")])
+                    yolo_item.appendRow([gx_item,EditableStandardItem("non")])
+                    yolo_item.appendRow([gy_item,EditableStandardItem("non")])
+                    yolo_item.appendRow([x_item,EditableStandardItem("non")])
+                    yolo_item.appendRow([y_item,EditableStandardItem("non")])
+                    yolo_item.appendRow([c_item,EditableStandardItem("non")])
 
-                yolo_item.appendRow([gx_item,EditableStandardItem("non")])
-                yolo_item.appendRow([gy_item,EditableStandardItem("non")])
-                yolo_item.appendRow([x_item,EditableStandardItem("non")])
-                yolo_item.appendRow([y_item,EditableStandardItem("non")])
-                yolo_item.appendRow([c_item,EditableStandardItem("non")])
+                    name_item.appendRow([file_item,EditableStandardItem("non")])
+                    name_item.appendRow([yolo_item,EditableStandardItem("non")])
+                    if parent:
+                        parent.appendRow([name_item,EditableStandardItem("img")])
+                    else:
+                        raise Exception("No  project is opend")
+                elif item_type == "Neural Net":
+                    parent_name = "Neuronale Netze"
+                    name = "cnn"
+                    print(self.file_path)
+                    # head, _ = os.path.split(self.file_path)
+                    # main_path=os.path.join(head, "cnn" )
+                    # if not os.path.exists(main_path):
+                    #     os.makedirs(main_path, exist_ok=True)
 
-                name_item.appendRow([file_item,EditableStandardItem("non")])
-                name_item.appendRow([yolo_item,EditableStandardItem("non")])
+                    # path=os.path.join(main_path,f"{item_name}.pynns")
 
-                parent.appendRow([name_item,EditableStandardItem("img")])
+                    # print(path)
+                    # main_code=f"""#{item_name}.pynns"""
 
-            elif item_type == "Neural Net":
-                parent_name = "Neuronale Netze"
-                name = "cnn"
+                    # if not __name__ =="__main__":
+                    #     with open(path, "w") as f:
+                    #         f.write("")
 
-                head, _ = os.path.split(self.file_path)
-                main_path=os.path.join(head, "cnn" )
-                if not os.path.exists(main_path):
-                    os.makedirs(main_path, exist_ok=True)
+                elif item_type == "Class":
+                    parent_name = "Classes"
+                    name = "class"
 
-                path=os.path.join(main_path,f"{item_name}.py")
-                #print(path)
-                main_code=f"""#{item_name}.py"
-                
-                
-                """
-                with open(path, "w") as f:
-                    f.write("#NeuronalNet.py")
+                if not item_type=="Image":
+                    parent = self.get_item_by_name(parent_name)
 
-            elif item_type == "Class":
-                parent_name = "Classes"
-                name = "class"
-                
-            if not item_type=="Image":
-                parent = self.get_item_by_name(parent_name)
+                    name_item = EditableStandardItem(item_name)
+                    type_item = EditableStandardItem(name)
 
-                name_item = EditableStandardItem(item_name)
-                type_item = EditableStandardItem(name)
+                    if parent:
+                        parent.appendRow([name_item, type_item])
+                    else:
+                        raise Exception("No  project is opend")
+        except Exception as e:
+            print(f"error: {e}")
 
-                if parent:
-                    parent.appendRow([name_item, type_item])
-                else:
-                    self.model.appendRow([name_item, type_item])
+
+    def load_db(self, filename=None):
+        if not filename:
+            filename=self.file_path
+        # Connect to the database
+        conn = sqlite3.connect(filename)
+        c = conn.cursor()
+    
+        # Create the tables if they don't exist
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS classes (
+                id INTEGER PRIMARY KEY,
+                name TEXT
+            )
+        ''')
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS neural_nets (
+                id INTEGER PRIMARY KEY,
+                name TEXT
+            )
+        ''')
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS images (
+                id INTEGER PRIMARY KEY,
+                label TEXT,
+                file TEXT,
+                gx INTEGER,
+                gy INTEGER,
+                x INTEGER,
+                y INTEGER,
+                class INTEGER
+            )
+        ''')
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS Yolo (
+                id INTEGER AUTO_INCREMENT NOT NULL,
+                label TEXT,
+                value ENUM,
+                PRIMARY KEY (id)
+            )
+        ''')
+        # Load data from the database
+        data = {}
+        data['Classes'] = [row[0] for row in c.execute('SELECT name FROM classes')]
+        data['Neuronale Netze'] = [row[0] for row in c.execute('SELECT name FROM neural_nets')]
+        data['Images'] = []
+        for row in c.execute('SELECT label, file, gx, gy, x, y, class FROM images'):
+            img_data = {
+                'label': row[0],
+                'File': row[1],
+                'Yolo': {
+                    'gx': row[2],
+                    'gy': row[3],
+                    'x': row[4],
+                    'y': row[5],
+                    'Class': row[6]
+                }
+            }
+            data['Images'].append(img_data)
+    
+        data["Yolo"]=[]
+        for row in c.execute("SELECT label, value FROM Yolo"):
+            Yolo={
+                row[0]: row[1]
+            }
+            data["Yolo"].append(Yolo)
+        # Close the database connection
+        conn.close()
+        print(data)
+        # Add items to the tree view
+        self.add_items(self.model.invisibleRootItem(), data)
+
+    def saveDb(self, filename=None):
+        if not filename:
+            filename=self.file_path
+        # Get the structure of the tree view
+        d = self.get_structure()
+        print(d)
+        # Connect to the database
+        conn = sqlite3.connect(filename)
+        c = conn.cursor()
+
+        # Clear the tables
+        c.execute('DELETE FROM classes')
+        c.execute('DELETE FROM neural_nets')
+        c.execute('DELETE FROM images')
+        c.execute('DELETE FROM Yolo')
+
+        # Insert data into the tables
+        try:
+            for class_name in d['Classes']:
+                c.execute('INSERT INTO classes (name) VALUES (?)', (class_name,))
+        except Exception as e:
+            print(f"error: e")
+        try:
+            for net_name in d['Neuronale Netze']:
+                c.execute('INSERT INTO neural_nets (name) VALUES (?)', (net_name,))
+        except Exception as e:
+            print(f"error: e")
+        try:
+            for img_data in d['Images']:
+                yolo_data = img_data['Yolo']
+                values = (img_data['label'], img_data['File'], yolo_data['gx'], yolo_data['gy'], yolo_data['x'], yolo_data['y'], yolo_data['Class'])
+                c.execute('INSERT INTO images (label, file, gx, gy, x, y, class) VALUES (?, ?, ?, ?, ?, ?, ?)', values)
+        except Exception as e:
+            print(f"error: e")
+        try:
+            for key, value in d["Yolo"].items():
+                c.execute(f'INSERT INTO Yolo (label, value) VALUES ("{key}", "{value}")')
+        except Exception as e:
+            print(f"error: e")
+        # Commit changes and close the database connection
+        conn.commit()
+        conn.close()
     
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
-    tree_view_panel = TreeviewPanel("C:/Users/lucas/Documents/Python/GUI/Bild_KI_Trainer_Programm/test.json")
+    tree_view_panel = TreeviewPanel("C:/Users/lucas/Documents/Python/GUI/Bild_KI_Trainer_Programm/test.db")
     tree_view_panel.show()
     app.exec_()
-    tree_view_panel.saveJson()
+    tree_view_panel.saveDb()

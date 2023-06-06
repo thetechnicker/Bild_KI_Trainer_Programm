@@ -15,46 +15,15 @@ class PythonHighlighter(QSyntaxHighlighter):
         keywordFormat1.setFontWeight(QFont.Bold)
         keywordFormat1.setForeground(QColor("blue"))
 
-        keywordPatterns = ["\\band\\b",
-                           "\\bas\\b",
-                           "\\bassert\\b",
-                           "\\bbreak\\b",
-                           "\\bclass\\b",
-                           "\\bcontinue\\b",
-                           "\\bdef\\b",
-                           "\\bdel\\b",
-                           "\\belif\\b",
-                           "\\belse\\b",
-                           "\\bexcept\\b",
-                           "\\bFalse\\b",
-                           "\\bfinally\\b",
-                           "\\bfor\\b",
-                           "\\bfrom\\b",
-                           "\\bglobal\\b",
-                           "\\bif\\b",
-                           "\\bin\\b",
-                           "\\bis\\b",
-                           "\\bimport\\b",
-                           "\\bin\\b",
-                           "\\bis\\b",
-                           "\\blambda\\b",
-                           "\\bNone\\b",
-                           "\\bnonlocal\\b",
-                           "\\bnot\\b",
-                           "\\bor\\b",
-                           "\\bpass\\b",
-                           "\\braise\\b",
-                           "\\breturn\\b",
-                           "\\bTrue\\b",
-                           "\\btry\\b",
-                           "\\bwhile\\b",
-                           "\\bwith\\b",
-                           "\\byield\\b",
-                           "\\bSequential\\b",
+        keywordPatterns = ["\\bSequential\\b",
                            "\\bConv2D\\b",
                            "\\bMaxPooling2D\\b",
                            "\\bFlatten\\b",
-                           "\\bDense\\b"]
+                           "\\bDense\\b",
+                           "\\badd\\b",
+                           "\\bpadding\\b",
+                           "\\bactivation\\b",
+                           "\\bpool_size\\b"]
 
         rules = [(QRegExp(pattern), keywordFormat1) for pattern in keywordPatterns]
 
@@ -67,9 +36,34 @@ class PythonHighlighter(QSyntaxHighlighter):
         string_pattern = QRegExp('"(?:[^"\\\\]|\\\\.)*"')
         rules.append((string_pattern, green_format))
 
+        string_pattern = QRegExp("'(?:[^'\\\\]|\\\\.)*'")
+        rules.append((string_pattern, green_format))
+        
+
+        string_pattern = QRegExp('"""(?:[^"\\\\]|\\\\.)*"""')
+        rules.append((string_pattern, green_format))
+
+        string_pattern = QRegExp("'''(?:[^'\\\\]|\\\\.)''*'")
+        rules.append((string_pattern, green_format))
+
         self.highlightingRules = rules
+        self.green_format=green_format
+        self.ismultiLine=False
+
 
     def highlightBlock(self, text):
+        #print(f"test: {text}")
+        if "'''" in text or '"""' in text:
+            if not self.ismultiLine:
+                self.ismultiLine=True
+                self.setFormat(0, len(text), self.green_format)
+            else:
+                self.ismultiLine=False
+                self.setFormat(0, len(text), self.green_format)
+               
+        elif self.ismultiLine:
+            self.setFormat(0, len(text), self.green_format)
+
         for pattern, format in self.highlightingRules:
             expression = QRegExp(pattern)
             index = expression.indexIn(text)
@@ -99,14 +93,18 @@ class FileEditor(QWidget):
         self.ScriptThread=None
     
     def runCode(self):
-        index = self.tabWidget.currentIndex()
-        tab_text = self.tabWidget.widget(index).toPlainText()
-        if not self.ScriptThread:
-            self.ScriptThread= threading.Thread(target=self.run_script,args=(tab_text,self.on_thread_finished))
-            self.ScriptThread.setDaemon(True)
-            self.ScriptThread.start()
-        else:
-            pass
+        try:
+            index = self.tabWidget.currentIndex()
+            tab_text = self.tabWidget.widget(index).toPlainText()
+            if not self.ScriptThread:
+                self.ScriptThread= threading.Thread(target=self.run_script,args=(tab_text,self.on_thread_finished))
+                self.ScriptThread.setDaemon(True)
+                self.ScriptThread.start()
+            else:
+                pass
+        except Exception as e:
+            print(f"error: {e}")
+
 
     def run_script(self, text, calback):
         exec(text)
@@ -155,6 +153,6 @@ class FileEditor(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = FileEditor()
-    window.add_view('./cnn.py')
+    window.add_view('./neuralNet.pynns')
     window.show()
     app.exec_()

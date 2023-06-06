@@ -3,6 +3,7 @@ import os
 import sys
 from PyQt5.QtWidgets import QMainWindow, QApplication
 from PyQt5 import QtWidgets, QtCore
+import sqlite3
 
 #from Panels.cam_panel import cam_panel
 from Panels.CameraSettingWidget import CameraWidget as CamPanel
@@ -38,10 +39,12 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("AI Trainer")
         self.resize(800, 600)
         self.data=data
-        self.cnn_folder=None
-        self.img_folder=None
-        self.export_folder=None
+        self.cnn_folder    =None
+        self.img_folder    =None
+        self.export_folder =None
         self.currentProject=None
+
+        self.DatabaseFile=None
 
         # Create the menu bar
         menubar = self.menuBar()
@@ -81,42 +84,78 @@ class MainWindow(QMainWindow):
 
         # Create the window menu and add actions
         window_menu = menubar.addMenu('Window')
-        trainingsdaten_action = QtWidgets.QAction('Trainingsdaten', self, checkable=True)
-        window_menu.addAction(trainingsdaten_action)
+        #trainingsdaten_action = QtWidgets.QAction('Trainingsdaten', self, checkable=True)
+        #window_menu.addAction(trainingsdaten_action)
 
         central_widget = QtWidgets.QWidget()
         self.setCentralWidget(central_widget)
 
         main_layout = QtWidgets.QVBoxLayout(central_widget)
         layout = QtWidgets.QHBoxLayout()
-        self.treeview=TreeviewPanel()
+        self.treeview = TreeviewPanel()
         self.treeview.set_callback(self.Treeview_click_event)
 
-        layout.addWidget(self.treeview)
+        self.NeuralNetEditor = NeuralNetEditor()
 
-        self.NeuralNetEditor=NeuralNetEditor()
-        layout.addWidget(self.NeuralNetEditor)
-    
         cam_panel = CamPanel([0, 0, 640, 480, 1, 100])
-        layout.addWidget(cam_panel)
         layout.setAlignment(cam_panel, QtCore.Qt.AlignTop)
-        main_layout.addLayout(layout)
-        main_layout.addWidget(PythonConsole())
-        self.openlast()
+
+        # Create a horizontal splitter and add the treeview and NeuralNetEditor
+        self.h_splitter = QtWidgets.QSplitter()
+        self.h_splitter.addWidget(self.treeview)
+        self.h_splitter.addWidget(self.NeuralNetEditor)
+        self.h_splitter.addWidget(cam_panel)
+        self.h_splitter.setSizes([10, 25, 10])
+
+        # Create a vertical splitter and add the horizontal splitter and cam_panel
+        self.v_splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
+        self.v_splitter.addWidget(self.h_splitter)
+        self.v_splitter.addWidget(PythonConsole())
+        self.v_splitter.setSizes([100, 1])
         
+        if "h_sizes" in data and "v_sizes" in data:
+            h_sizes=data["h_sizes"]
+            v_sizes=data["v_sizes"]
+            self.h_splitter.setSizes(h_sizes)
+            self.v_splitter.setSizes(v_sizes)
+
+        main_layout.addWidget(self.v_splitter)
+        #self.openlast()
+
+        # initialising optionMenü items
+        new_class = QtWidgets.QAction('Create new Class', self)
+        new_class.setShortcut('Ctrl+Shift+c')
+        new_class.triggered.connect(lambda: self.treeview.add_item("Class"))
+        options_menu.addAction(new_class)
+
+        new_image = QtWidgets.QAction('Create new Image', self)
+        new_image.setShortcut('Ctrl+Shift+i')
+        new_image.triggered.connect(lambda: self.treeview.add_item("Image"))
+        options_menu.addAction(new_image)
+
+        new_cnn = QtWidgets.QAction('Create new Neuralnet', self)
+        new_cnn.setShortcut('Ctrl+Shift+n')
+        new_cnn.triggered.connect(lambda: self.treeview.add_item("Neural Net"))
+        options_menu.addAction(new_cnn)
 
     def closeEvent(self,event):
-        self.save_projeck()
+        #self.save_projeck()
+        
+        h_sizes = self.h_splitter.sizes()
+        v_sizes = self.v_splitter.sizes()
+         
+        self.data["h_sizes"]= h_sizes
+        self.data["v_sizes"]= v_sizes
         with open("./settings.json", "w") as f:
-                json.dump(data,f)
+            json.dump(self.data,f)
         event.accept()
 
-    
+
     def Treeview_click_event(self, item, parent):
         print(item.text())
         if parent:
             print(parent.text())
-            if parent.text()=="Neuronale Netze":
+            if parent.text()=="Neuronale Netze" and False:
                 print("test")
                 path=os.path.join(self.cnn_folder,f"{item.text()}.py")
                 self.NeuralNetEditor.add_view(path)
@@ -136,54 +175,159 @@ class MainWindow(QMainWindow):
             project_name, root_folder = dialog.get_inputs()
             ##print(f'Creating project "{project_name}" in folder "{project_folder}"')
             # Create the project folder
-            project_folder = os.path.join(root_folder, project_name)
-            self.data["lastProject"]=project_folder
-            
-            os.makedirs(project_folder, exist_ok=True)
+            #if True:
+            try:
+                if "\\" in project_name or "/" in project_name :
+                    raise Exception("Project Name can not contain \\ or /")
+                
+                project_folder = os.path.join(root_folder, project_name)
+                self.data["lastProject"]=project_folder
+                
+                os.makedirs(project_folder, exist_ok=True)
 
-            # Create the projectname.json file
-            jsonfile=os.path.join(project_folder, f'{project_name}.json')
-            open(jsonfile, 'w').close()
+                # Create the projectname.json file
+                self.DatabaseFile=os.path.join(project_folder, f'{project_name}.db')
+                connection=sqlite3.connect(self.DatabaseFile)
+                DataBase=connection.cursor()
+                DataBase.execute('''
+                    CREATE TABLE IF NOT EXISTS classes (
+                        id INTEGER PRIMARY KEY,
+                        name TEXT
+                    )
+                ''')
+                DataBase.execute('''
+                    CREATE TABLE IF NOT EXISTS neural_nets (
+                        id INTEGER PRIMARY KEY,
+                        name TEXT
+                    )
+                ''')
+                DataBase.execute('''
+                    CREATE TABLE IF NOT EXISTS images (
+                        id INTEGER PRIMARY KEY,
+                        label TEXT,
+                        file TEXT,
+                        gx INTEGER,
+                        gy INTEGER,
+                        x INTEGER,
+                        y INTEGER,
+                        class INTEGER
+                    )
+                ''')
 
-            # Create the traindata, cnn, and export folders
-            self.img_folder = os.path.join(project_folder, 'traindata')
-            self.cnn_folder = os.path.join(project_folder, 'cnn')
-            self.export_folder = os.path.join(project_folder, 'export')
-            os.makedirs(self.img_folder, exist_ok=True)
-            os.makedirs(self.cnn_folder, exist_ok=True)
-            os.makedirs(self.export_folder, exist_ok=True)
-            self.treeview.setJson(jsonfile)
+                DataBase.execute('''
+                    CREATE TABLE IF NOT EXISTS Yolo (
+                        id INTEGER AUTO_INCREMENT,
+                        label TEXT,
+                        value ,
+                        PRIMARY KEY (id)
+                    )
+                ''')
+                for k, i in {"VerticalGridCount":13, "HorizontalGridCount":13}.items():
+                    DataBase.execute(
+                        f"""
+                        INSERT INTO Yolo (label, value) VALUES ('{k}', '{i}')
+                        """
+                    )
+                
+
+                connection.commit()
+
+                data_db = {}
+                data_db['Classes'] = [row[0] for row in connection.execute('SELECT name FROM classes')]
+                data_db['Neuronale Netze'] = [row[0] for row in connection.execute('SELECT name FROM neural_nets')]
+                data_db['Images'] = []
+                for row in connection.execute('SELECT label, file, gx, gy, x, y, class FROM images'):
+                    img_data = {
+                        'label': row[0],
+                        'File': row[1],
+                        'Yolo': {
+                            'gx': row[2],
+                            'gy': row[3],
+                            'x': row[4],
+                            'y': row[5],
+                            'Class': row[6]
+                        }
+                    }
+                    data_db['Images'].append(img_data)
+
+                data_db["Yolo"]=[]
+                for row in connection.execute("SELECT label, value FROM Yolo"):
+                    Yolo={
+                        row[0]: row[1]
+                    }
+                    data_db["Yolo"].append(Yolo)
+                print(data_db)
+                connection.close()
+            except Exception as e:
+                print(f"Error: {e}")
+            else:
+                self.cnn_folder     = os.path.join(project_folder, "cnn")
+                self.img_folder     = os.path.join(project_folder, "img")
+                self.export_folder  = os.path.join(project_folder, "exports")
+                self.currentProject = project_folder
+                os.mkdir(self.cnn_folder)
+                os.mkdir(self.img_folder)
+                os.mkdir(self.export_folder)
+                self.treeview.setDB(self.DatabaseFile)
+                self.setWindowTitle(f"AI Trainer\t\t{self.currentProject}")
 
     def open_projeck(self):
         folder = QtWidgets.QFileDialog.getExistingDirectory(self, 'Open Project',data["projectFolder"])
         self.data["lastProject"]=folder
         if folder:
             folder_name = os.path.basename(folder)
-            file_name = f'{folder_name}.json'
-            file_path = os.path.join(folder, file_name)
-            if os.path.exists(file_path):
-                self.treeview.setJson(file_path)
-        
-            self.img_folder = os.path.join(folder, 'traindata')
-            self.cnn_folder = os.path.join(folder, 'cnn')
-            self.export_folder = os.path.join(folder, 'export')
-            
+            file_name = f'{folder_name}.db'
+            self.DatabaseFile = os.path.join(folder, file_name)
+            if os.path.exists(self.DatabaseFile):
+                try:                
+                    connection=sqlite3.connect(self.DatabaseFile)
+                    connection.close()
+                except Exception as e:
+                    print(f"Error: {e}")
+                finally:
+                    self.cnn_folder     = os.path.join(folder, "cnn")
+                    self.img_folder     = os.path.join(folder, "img")
+                    self.export_folder  = os.path.join(folder, "exports")
+                    self.currentProject = folder
+                    self.treeview.setDB(self.DatabaseFile)
+                    self.setWindowTitle(f"AI Trainer\t\t{self.currentProject}")
+            else:
+                print("Projectfolder has no database")
+        else:
+            print("error")
+
     def openlast(self):
         if "lastProject" in self.data:
             folder_name = os.path.basename(self.data["lastProject"])
-            file_name = f'{folder_name}.json'
+            file_name = f'{folder_name}.db'
             file_path = os.path.join(self.data["lastProject"], file_name)
-            if os.path.exists(file_path):
-                self.treeview.setJson(file_path)
+            folder_name = os.path.basename(file_path)
+            file_name = f'{folder_name}.db'
+            self.DatabaseFile = os.path.join(folder_name, file_name)
+            if os.path.exists(self.DatabaseFile):
+                try:                
+                    connection=sqlite3.connect(self.DatabaseFile)
+                    connection.close()
+                except Exception as e:
+                    print(f"Error: {e}")
+                finally:
+                    self.cnn_folder     = os.path.join(folder_name, "cnn")
+                    self.img_folder     = os.path.join(folder_name, "img")
+                    self.export_folder  = os.path.join(folder_name, "exports")
+                    self.currentProject = folder_name
+                    self.treeview.setDB(self.DatabaseFile)
+                    self.setWindowTitle(f"AI Trainer\t\t{self.currentProject}")
+            else:
+                print("Projectfolder has no database")
 
-            self.img_folder = os.path.join(self.data["lastProject"], 'traindata')
-            self.cnn_folder = os.path.join(self.data["lastProject"], 'cnn')
-            self.export_folder = os.path.join(self.data["lastProject"], 'export')
 
 
     def save_projeck(self):
-        self.treeview.saveJson()
-        self.NeuralNetEditor.save(self.cnn_folder)
+        try:
+            self.treeview.saveDb()
+            #self.NeuralNetEditor.save(self.cnn_folder)
+        except Exception as e:
+            print(f"error: {e}")
 
 
 if __name__ == "__main__":
@@ -196,11 +340,7 @@ if __name__ == "__main__":
         data["projectFolder"]=folder_name
         with open("./settings.json", "w") as f:
                 json.dump(data,f)
-                
-
 
     window = MainWindow(data)
     window.show()
     app.exec_()
-
-#FileEditor

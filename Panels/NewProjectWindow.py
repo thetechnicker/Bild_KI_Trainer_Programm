@@ -16,6 +16,7 @@ class ProjectDialog(QtWidgets.QDialog):
         # Create the buttons
         ok_button = QtWidgets.QPushButton('OK')
         ok_button.clicked.connect(self.accept)
+        ok_button.setDefault(True)
         cancel_button = QtWidgets.QPushButton('Cancel')
         cancel_button.clicked.connect(self.reject)
 
