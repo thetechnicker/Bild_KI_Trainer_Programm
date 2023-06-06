@@ -155,9 +155,9 @@ class MainWindow(QMainWindow):
         print(item.text())
         if parent:
             print(parent.text())
-            if parent.text()=="Neuronale Netze" and False:
+            if parent.text()=="Neuronale Netze":
                 print("test")
-                path=os.path.join(self.cnn_folder,f"{item.text()}.py")
+                path=os.path.join(self.cnn_folder,f"{item.text()}.pynns")
                 self.NeuralNetEditor.add_view(path)
 
     def settings(self):

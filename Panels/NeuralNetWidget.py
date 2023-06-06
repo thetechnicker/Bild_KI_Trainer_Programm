@@ -5,6 +5,7 @@ from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QTabWidget, QTextEdit
 from PyQt5.QtGui import QSyntaxHighlighter, QTextCharFormat, QFont, QColor, QIcon
 from PyQt5.QtCore import QRegExp
+from cnn import *
 
 
 class PythonHighlighter(QSyntaxHighlighter):
@@ -49,6 +50,10 @@ class PythonHighlighter(QSyntaxHighlighter):
         self.highlightingRules = rules
         self.green_format=green_format
         self.ismultiLine=False
+        if not __name__=="__main__":
+            self.folderName=None
+        else:
+            self.folderName="C:/Users/lucas/Documents/Python/GUI/Bild_KI_Trainer_Programm/test.db"
 
 
     def highlightBlock(self, text):
@@ -96,8 +101,13 @@ class FileEditor(QWidget):
         try:
             index = self.tabWidget.currentIndex()
             tab_text = self.tabWidget.widget(index).toPlainText()
+            if  self.folderName:
+                projectName=os.path.basename(self.folderName)
+                data=loadData(os.path.join(self.folderName,projectName,".db"))
+            else:
+                data=None
             if not self.ScriptThread:
-                self.ScriptThread= threading.Thread(target=self.run_script,args=(tab_text,self.on_thread_finished))
+                self.ScriptThread= threading.Thread(target=self.run_script,args=(tab_text,self.on_thread_finished, data))
                 self.ScriptThread.setDaemon(True)
                 self.ScriptThread.start()
             else:
@@ -106,8 +116,8 @@ class FileEditor(QWidget):
             print(f"error: {e}")
 
 
-    def run_script(self, text, calback):
-        exec(text)
+    def run_script(self, text, calback, data):
+        createModel(text,data)
         calback()
 
     def on_thread_finished(self):
@@ -115,6 +125,8 @@ class FileEditor(QWidget):
 
 
     def add_view(self, filename):
+        if not __name__=="__main__":
+            self.folderName, _=os.path.split(filename)
         textEdit = QTextEdit()
         font = QFont()
         font.setPointSize(9)
