@@ -25,6 +25,7 @@ class PythonConsole(QtWidgets.QWidget):
 
         # Set up the output stream
         sys.stdout = Stream(newText=self.onUpdateText)
+        self.callback=None
 
     def onUpdateText(self, text):
         cursor = self.output.textCursor()
@@ -39,6 +40,11 @@ class PythonConsole(QtWidgets.QWidget):
             self.output.clear()
             self.input.clear()
             return
+        elif data=='clearTree':
+            if self.callback:
+                self.callback()
+            self.input.clear()
+            return
         print(f'>>> {data}')
         try:
             result = eval(data)
@@ -47,7 +53,8 @@ class PythonConsole(QtWidgets.QWidget):
         except Exception as e:
             print(e)
         self.input.clear()
-
+    def setCallback(self, callback):
+        self.callback=callback
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     widget = PythonConsole()

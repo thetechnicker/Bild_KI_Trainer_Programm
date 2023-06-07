@@ -5,8 +5,12 @@ from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QTabWidget, QTextEdit
 from PyQt5.QtGui import QSyntaxHighlighter, QTextCharFormat, QFont, QColor, QIcon
 from PyQt5.QtCore import QRegExp
-from cnn import *
+if __name__ == "__main__":
+    from cnn import *
+else:
+    from .cnn import *
 
+projectFolder=None
 
 class PythonHighlighter(QSyntaxHighlighter):
     def __init__(self, parent=None):
@@ -50,10 +54,6 @@ class PythonHighlighter(QSyntaxHighlighter):
         self.highlightingRules = rules
         self.green_format=green_format
         self.ismultiLine=False
-        if not __name__=="__main__":
-            self.folderName=None
-        else:
-            self.folderName="C:/Users/lucas/Documents/Python/GUI/Bild_KI_Trainer_Programm/test.db"
 
 
     def highlightBlock(self, text):
@@ -77,6 +77,29 @@ class PythonHighlighter(QSyntaxHighlighter):
                 self.setFormat(index, length, format)
                 index = expression.indexIn(text, index + length)
 
+class MyTabWidget(QtWidgets.QTabWidget):
+    def mousePressEvent(self, event):
+        global projectFolder
+        if event.button() == QtCore.Qt.RightButton:
+            try:
+                index = self.tabBar().tabAt(event.pos())
+                print(f'Left-clicked on tab: {index}')
+                projectName,_=os.path.split(projectFolder)
+                oldName=self.tabText(index)
+                name, ok = QtWidgets.QInputDialog.getText(self, "Name",'', text=oldName)
+                if ok:
+                    if not name==oldName:
+                        self.setTabText(index, name)
+                        if not ".pynns" in name:
+                            name+=".pynns"
+                        oldfile=os.path.join(projectName,"cnn",oldName)
+                        file=os.path.join(projectName,"cnn",name)
+                        print("",oldfile, file, sep="\t\n")
+                        #os.rename(oldfile, file)
+            except Exception as e:
+                print(f"error: {e}")
+                    
+        super().mousePressEvent(event)
 
 class FileEditor(QWidget):
     def __init__(self):
@@ -85,7 +108,7 @@ class FileEditor(QWidget):
         layout = QVBoxLayout()
         self.setLayout(layout)
 
-        self.tabWidget = QTabWidget()
+        self.tabWidget = MyTabWidget()
         button = QtWidgets.QPushButton()
         button.clicked.connect(self.runCode)
         # Set the button icon to a green play image
@@ -96,15 +119,23 @@ class FileEditor(QWidget):
         layout.setAlignment(button, QtCore.Qt.AlignRight)
         layout.addWidget(self.tabWidget)
         self.ScriptThread=None
-    
+
+    def setProjectFolder(self, ProjectFolder):
+        global projectFolder
+        projectFolder=ProjectFolder
+
     def runCode(self):
+        global projectFolder
         try:
             index = self.tabWidget.currentIndex()
             tab_text = self.tabWidget.widget(index).toPlainText()
-            if  self.folderName:
-                projectName=os.path.basename(self.folderName)
-                data=loadData(os.path.join(self.folderName,projectName,".db"))
-            else:
+            if projectFolder:
+                projectName=os.path.basename(projectFolder)
+                print(projectName)
+                db=os.path.join(projectFolder,projectName,".db")
+                print(db)
+                #data=loadData(db)
+            #else:
                 data=None
             if not self.ScriptThread:
                 self.ScriptThread= threading.Thread(target=self.run_script,args=(tab_text,self.on_thread_finished, data))
@@ -117,7 +148,7 @@ class FileEditor(QWidget):
 
 
     def run_script(self, text, calback, data):
-        createModel(text,data)
+        #createModel(text,data)
         calback()
 
     def on_thread_finished(self):
@@ -125,8 +156,6 @@ class FileEditor(QWidget):
 
 
     def add_view(self, filename):
-        if not __name__=="__main__":
-            self.folderName, _=os.path.split(filename)
         textEdit = QTextEdit()
         font = QFont()
         font.setPointSize(9)
@@ -165,6 +194,8 @@ class FileEditor(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = FileEditor()
+    window = FileEditor()
     window.add_view('./neuralNet.pynns')
+    window.setProjectFolder("C:/Users/lucas/Documents/Python/GUI/Bild_KI_Trainer_Programm/test.db")
     window.show()
     app.exec_()

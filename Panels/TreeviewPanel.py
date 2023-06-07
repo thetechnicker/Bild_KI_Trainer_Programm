@@ -376,19 +376,19 @@ class TreeviewPanel(QtWidgets.QWidget):
                     parent_name = "Neuronale Netze"
                     name = "cnn"
                     print(self.file_path)
-                    # head, _ = os.path.split(self.file_path)
-                    # main_path=os.path.join(head, "cnn" )
-                    # if not os.path.exists(main_path):
-                    #     os.makedirs(main_path, exist_ok=True)
+                    head, _ = os.path.split(self.file_path)
+                    main_path=os.path.join(head, "cnn" )
+                    if not os.path.exists(main_path):
+                        os.makedirs(main_path, exist_ok=True)
+                    pathname=item_name.replace(" ", "_")
+                    path=os.path.join(main_path,f"{pathname}.pynns")
 
-                    # path=os.path.join(main_path,f"{item_name}.pynns")
+                    print(path)
+                    main_code=f"""#{pathname}.pynns"""
 
-                    # print(path)
-                    # main_code=f"""#{item_name}.pynns"""
-
-                    # if not __name__ =="__main__":
-                    #     with open(path, "w") as f:
-                    #         f.write("")
+                    if not __name__ =="__main__":
+                        with open(path, "w") as f:
+                            f.write(main_code)
 
                 elif item_type == "Class":
                     parent_name = "Classes"
@@ -521,7 +521,13 @@ class TreeviewPanel(QtWidgets.QWidget):
         # Commit changes and close the database connection
         conn.commit()
         conn.close()
-    
+
+    def clear(self):
+        root=self.model.invisibleRootItem()
+        while root.hasChildren():
+            for i in range(root.rowCount()):
+                self.model.removeRow(i)
+
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
     tree_view_panel = TreeviewPanel("C:/Users/lucas/Documents/Python/GUI/Bild_KI_Trainer_Programm/test.db")

@@ -40,30 +40,30 @@ def loadData(filename):
 def createModel(ModelStruckture, data=None):
     if not data:
         data={
-    "Classes": [
-        "1",
-        "3"
-    ],
-    "Images": [
-        {
-            "label": "Test",
-            "File": "C:/Users/lucas/Documents/Python/GUI/Bild_KI_Trainer_Programm/image0.jpg",
+            "Classes": [
+                "1",
+                "3"
+            ],
+            "Images": [
+                {
+                    "label": "Test",
+                    "File": "C:/Users/lucas/Documents/Python/GUI/Bild_KI_Trainer_Programm/image0.jpg",
+                    "Yolo": {
+                        "gx": 0,
+                        "gy": 0,
+                        "x": 0,
+                        "y": 0,
+                        "h": 10,
+                        "w": 10,
+                        "Class": 0
+                    }
+                }
+            ],
             "Yolo": {
-                "gx": 0,
-                "gy": 0,
-                "x": 0,
-                "y": 0,
-                "h": 10,
-                "w": 10,
-                "Class": 0
+                "VerticalGridCount": 13,
+                "HorizontalGridCount": 13
             }
         }
-    ],
-    "Yolo": {
-        "VerticalGridCount": 13,
-        "HorizontalGridCount": 13
-    }
-}
     modelScripts=["from tensorflow.keras.models import Sequential",
         "from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D",
         f"data={data}",

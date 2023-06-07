@@ -100,6 +100,8 @@ class MainWindow(QMainWindow):
         cam_panel = CamPanel([0, 0, 640, 480, 1, 100])
         layout.setAlignment(cam_panel, QtCore.Qt.AlignTop)
 
+        console=PythonConsole()
+        console.setCallback(self.clear)
         # Create a horizontal splitter and add the treeview and NeuralNetEditor
         self.h_splitter = QtWidgets.QSplitter()
         self.h_splitter.addWidget(self.treeview)
@@ -110,7 +112,7 @@ class MainWindow(QMainWindow):
         # Create a vertical splitter and add the horizontal splitter and cam_panel
         self.v_splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
         self.v_splitter.addWidget(self.h_splitter)
-        self.v_splitter.addWidget(PythonConsole())
+        self.v_splitter.addWidget(console)
         self.v_splitter.setSizes([100, 1])
         
         if "h_sizes" in data and "v_sizes" in data:
@@ -157,7 +159,8 @@ class MainWindow(QMainWindow):
             print(parent.text())
             if parent.text()=="Neuronale Netze":
                 print("test")
-                path=os.path.join(self.cnn_folder,f"{item.text()}.pynns")
+                name=item.text().replace(" ", "_")
+                path=os.path.join(self.cnn_folder,f"{name}.pynns")
                 self.NeuralNetEditor.add_view(path)
 
     def settings(self):
@@ -170,6 +173,8 @@ class MainWindow(QMainWindow):
                 json.dump(data,f)
 
     def new_projeck(self):
+        if self.DatabaseFile:
+            self.treeview.clear()
         dialog = ProjectDialog(data["projectFolder"], self)
         if dialog.exec_() == QtWidgets.QDialog.Accepted:
             project_name, root_folder = dialog.get_inputs()
@@ -269,9 +274,12 @@ class MainWindow(QMainWindow):
                 os.mkdir(self.img_folder)
                 os.mkdir(self.export_folder)
                 self.treeview.setDB(self.DatabaseFile)
+                self.NeuralNetEditor.setProjectFolder(self.DatabaseFile)
                 self.setWindowTitle(f"AI Trainer\t\t{self.currentProject}")
 
     def open_projeck(self):
+        if self.DatabaseFile:
+            self.treeview.clear()
         folder = QtWidgets.QFileDialog.getExistingDirectory(self, 'Open Project',data["projectFolder"])
         self.data["lastProject"]=folder
         if folder:
@@ -290,6 +298,7 @@ class MainWindow(QMainWindow):
                     self.export_folder  = os.path.join(folder, "exports")
                     self.currentProject = folder
                     self.treeview.setDB(self.DatabaseFile)
+                    self.NeuralNetEditor.setProjectFolder(self.DatabaseFile)
                     self.setWindowTitle(f"AI Trainer\t\t{self.currentProject}")
             else:
                 print("Projectfolder has no database")
@@ -297,6 +306,8 @@ class MainWindow(QMainWindow):
             print("error")
 
     def openlast(self):
+        if self.DatabaseFile:
+            self.treeview.clear()
         if "lastProject" in self.data:
             folder_name = os.path.basename(self.data["lastProject"])
             file_name = f'{folder_name}.db'
@@ -316,6 +327,7 @@ class MainWindow(QMainWindow):
                     self.export_folder  = os.path.join(folder_name, "exports")
                     self.currentProject = folder_name
                     self.treeview.setDB(self.DatabaseFile)
+                    self.NeuralNetEditor.setProjectFolder(self.DatabaseFile)
                     self.setWindowTitle(f"AI Trainer\t\t{self.currentProject}")
             else:
                 print("Projectfolder has no database")
@@ -328,7 +340,9 @@ class MainWindow(QMainWindow):
             #self.NeuralNetEditor.save(self.cnn_folder)
         except Exception as e:
             print(f"error: {e}")
-
+        
+    def clear(self):
+        self.treeview.clear()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
