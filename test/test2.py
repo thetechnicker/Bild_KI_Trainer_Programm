@@ -1,7 +1,7 @@
 import sys
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt, QRect
-
+"asdfih noiöansc vö msfnöoib önadf"
 class TabEditor(QtWidgets.QLineEdit):
     def __init__(self, index, parent=None):
         super().__init__(parent)
@@ -27,13 +27,23 @@ class TabEditor(QtWidgets.QLineEdit):
         self.parent.setTabText(self.index, self.text())
         self.hide()
 
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Escape:
+            # Discard changes and hide the editor
+            self.hide()
+        else:
+            super().keyPressEvent(event)
+
+        
 class MyTabWidget(QtWidgets.QTabWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.editor = None
 
-    def mouseDoubleClickEvent(self, event):
-        if event.button() == Qt.LeftButton:
+    def mousePressEvent(self, event):
+        #print(f"event: {event}")
+        if event.button() == Qt.RightButton:
+            #print("debug")
             index = self.tabBar().tabAt(event.pos())
             if index != -1:
                 # Create and show the editor
@@ -42,6 +52,13 @@ class MyTabWidget(QtWidgets.QTabWidget):
                 self.editor = TabEditor(index, self)
                 self.editor.show()
                 self.editor.setFocus()
+            elif self.editor:
+                self.editor.hide()
+        else:
+            if self.editor:
+                self.editor.hide()
+                    
+        super().mousePressEvent(event)
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):

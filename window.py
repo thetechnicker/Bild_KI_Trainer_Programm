@@ -80,7 +80,7 @@ class MainWindow(QMainWindow):
         file_menu.addAction(close_action)
 
         # Create the options menu
-        options_menu = menubar.addMenu('Options')
+        options_menu = menubar.addMenu('Project')
 
         # Create the window menu and add actions
         window_menu = menubar.addMenu('Window')

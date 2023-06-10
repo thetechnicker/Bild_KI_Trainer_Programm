@@ -83,19 +83,20 @@ class MyTabWidget(QtWidgets.QTabWidget):
         if event.button() == QtCore.Qt.RightButton:
             try:
                 index = self.tabBar().tabAt(event.pos())
-                print(f'Left-clicked on tab: {index}')
-                projectName,_=os.path.split(projectFolder)
-                oldName=self.tabText(index)
-                name, ok = QtWidgets.QInputDialog.getText(self, "Name",'', text=oldName)
-                if ok:
-                    if not name==oldName:
-                        self.setTabText(index, name)
-                        if not ".pynns" in name:
-                            name+=".pynns"
-                        oldfile=os.path.join(projectName,"cnn",oldName)
-                        file=os.path.join(projectName,"cnn",name)
-                        print("",oldfile, file, sep="\t\n")
-                        #os.rename(oldfile, file)
+                if not index == -1:
+                    print(f'Left-clicked on tab: {index}')
+                    projectName,_=os.path.split(projectFolder)
+                    oldName=self.tabText(index)
+                    name, ok = QtWidgets.QInputDialog.getText(self, "Name",'', text=oldName)
+                    if ok:
+                        if not name==oldName:
+                            self.setTabText(index, name)
+                            if not ".pynns" in name:
+                                name+=".pynns"
+                            oldfile=os.path.join(projectName,"cnn",oldName)
+                            file=os.path.join(projectName,"cnn",name)
+                            print("",oldfile, file, sep="\t\n")
+                            #os.rename(oldfile, file)
             except Exception as e:
                 print(f"error: {e}")
                     
