@@ -1,7 +1,8 @@
 import sys
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt, QRect
-"asdfih noiöansc vö msfnöoib önadf"
+
+
 class TabEditor(QtWidgets.QLineEdit):
     def __init__(self, index, parent=None):
         super().__init__(parent)

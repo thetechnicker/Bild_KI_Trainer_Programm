@@ -77,28 +77,61 @@ class PythonHighlighter(QSyntaxHighlighter):
                 self.setFormat(index, length, format)
                 index = expression.indexIn(text, index + length)
 
+class TabEditor(QtWidgets.QLineEdit):
+    def __init__(self, index, parent=None):
+        super().__init__(parent)
+        self.index = index
+        self.parent = parent
+
+        # Set the initial text and geometry of the editor
+        self.setText(parent.tabText(index))
+        self.setGeometry(self.getEditorRect())
+
+        # Connect signals
+        self.editingFinished.connect(self.finishEditing)
+
+    def getEditorRect(self):
+        # Get the rectangle of the tab at the given index
+        rect = self.parent.tabBar().tabRect(self.index)
+        # Map the rectangle to the coordinates of the tab widget
+        rect.moveTopLeft(self.parent.tabBar().mapTo(self.parent, rect.topLeft()))
+        return rect
+
+    def finishEditing(self):
+        # Set the new text of the tab and hide the editor
+        self.parent.setTabText(self.index, self.text())
+        self.hide()
+
+    def keyPressEvent(self, event):
+        if event.key() == QtCore.Qt.Key_Escape:
+            # Discard changes and hide the editor
+            self.hide()
+        else:
+            super().keyPressEvent(event)
+
+        
 class MyTabWidget(QtWidgets.QTabWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.editor = None
+
     def mousePressEvent(self, event):
-        global projectFolder
+        #print(f"event: {event}")
         if event.button() == QtCore.Qt.RightButton:
-            try:
-                index = self.tabBar().tabAt(event.pos())
-                if not index == -1:
-                    print(f'Left-clicked on tab: {index}')
-                    projectName,_=os.path.split(projectFolder)
-                    oldName=self.tabText(index)
-                    name, ok = QtWidgets.QInputDialog.getText(self, "Name",'', text=oldName)
-                    if ok:
-                        if not name==oldName:
-                            self.setTabText(index, name)
-                            if not ".pynns" in name:
-                                name+=".pynns"
-                            oldfile=os.path.join(projectName,"cnn",oldName)
-                            file=os.path.join(projectName,"cnn",name)
-                            print("",oldfile, file, sep="\t\n")
-                            #os.rename(oldfile, file)
-            except Exception as e:
-                print(f"error: {e}")
+            #print("debug")
+            index = self.tabBar().tabAt(event.pos())
+            if index != -1:
+                # Create and show the editor
+                if self.editor is not None:
+                    self.editor.deleteLater()
+                self.editor = TabEditor(index, self)
+                self.editor.show()
+                self.editor.setFocus()
+            elif self.editor:
+                self.editor.hide()
+        else:
+            if self.editor:
+                self.editor.hide()
                     
         super().mousePressEvent(event)
 
