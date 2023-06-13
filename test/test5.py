@@ -10,9 +10,9 @@ msg = QtWidgets.QMessageBox()
 try:
     msg.setWindowTitle('Succses')
     result = subprocess.run(['python', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    version = result.stdout.decode('utf-8').strip()
+    version = result.stdout.decode().strip()
     if not version:
-        version = result.stderr.decode('utf-8').strip()
+        version = result.stderr.decode().strip()
     msg.setText(f'Python is installed: {version}')
 except FileNotFoundError:
     msg.setWindowTitle('Error')
