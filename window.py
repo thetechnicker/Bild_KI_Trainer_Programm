@@ -24,7 +24,7 @@ try:
     if not version:
         version = result.stderr.decode('utf-8').strip()
     msg.setText(f'Python is installed: {version}')
-except FileNotFoundError:
+except:
     msg.setWindowTitle('Error')
     #print('Python is not installed')
     msg.setText('Python is not installed')
