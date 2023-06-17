@@ -15,8 +15,7 @@ from Panels.consolenWidget import PythonConsole
 
 import subprocess
 
-#
-#
+
 try:
     #msg.setWindowTitle('Succses')
     result = subprocess.run(['python', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
