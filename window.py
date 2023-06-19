@@ -42,10 +42,10 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("AI Trainer")
         self.resize(800, 600)
         self.data=data
-        self.cnn_folder    =None
-        self.img_folder    =None
-        self.export_folder =None
-        self.currentProject=None
+        self.cnn_folder     = None
+        self.img_folder     = None
+        self.export_folder  = None
+        self.currentProject = None
 
         self.DatabaseFile=None
 
@@ -111,7 +111,11 @@ class MainWindow(QMainWindow):
         self.h_splitter.addWidget(self.NeuralNetEditor)
         self.h_splitter.addWidget(cam_panel)
         self.h_splitter.setSizes([10, 25, 10])
-
+        
+        
+        self.NeuralNetEditor.setCallback()
+        
+        
         # Create a vertical splitter and add the horizontal splitter and cam_panel
         self.v_splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
         self.v_splitter.addWidget(self.h_splitter)

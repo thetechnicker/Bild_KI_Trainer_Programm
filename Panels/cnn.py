@@ -102,6 +102,6 @@ def createModel(ModelStruckture, data=None):
     seperator="\n"
     modelScript=seperator.join(modelScripts)
     print(modelScript)
-    #globals={}
-    #exec(modelScript, globals)
-    #print(globals)
+    globals={}
+    exec(modelScript, globals)
+    print(globals)

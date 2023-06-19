@@ -115,6 +115,9 @@ class MyTabWidget(QtWidgets.QTabWidget):
         super().__init__(parent)
         self.editor = None
 
+    def setCallback(self, callback):
+        self.callback=callback
+
     def mousePressEvent(self, event):
         #print(f"event: {event}")
         if event.button() == QtCore.Qt.RightButton:
@@ -136,13 +139,17 @@ class MyTabWidget(QtWidgets.QTabWidget):
         super().mousePressEvent(event)
 
 class FileEditor(QWidget):
+    setCallback=None
+    
     def __init__(self):
         super().__init__()
+        global setCallback
         self.setMinimumSize(400, 500);
         layout = QVBoxLayout()
         self.setLayout(layout)
 
         self.tabWidget = MyTabWidget()
+        setCallback=self.tabWidget.setCallback
         button = QtWidgets.QPushButton()
         button.clicked.connect(self.runCode)
         # Set the button icon to a green play image
@@ -182,7 +189,7 @@ class FileEditor(QWidget):
 
 
     def run_script(self, text, calback, data):
-        #createModel(text,data)
+        createModel(text,data)
         calback()
 
     def on_thread_finished(self):
