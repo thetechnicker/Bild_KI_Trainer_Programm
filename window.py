@@ -113,7 +113,7 @@ class MainWindow(QMainWindow):
         self.h_splitter.setSizes([10, 25, 10])
         
         
-        self.NeuralNetEditor.setCallback()
+        #self.NeuralNetEditor.setCallback()
         
         
         # Create a vertical splitter and add the horizontal splitter and cam_panel
