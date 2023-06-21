@@ -45,19 +45,19 @@ def createModel(ModelStruckture, data=None):
                 "3"
             ],
             "Images": [
-                {
-                    "label": "Test",
-                    "File": "C:/Users/lucas/Documents/Python/GUI/Bild_KI_Trainer_Programm/image0.jpg",
-                    "Yolo": {
-                        "gx": 0,
-                        "gy": 0,
-                        "x": 0,
-                        "y": 0,
-                        "h": 10,
-                        "w": 10,
-                        "Class": 0
-                    }
-                }
+                #{
+                #    "label": "Test",
+                #    "File": "C:/Users/lucas/Documents/Python/GUI/Bild_KI_Trainer_Programm/image0.jpg",
+                #    "Yolo": {
+                #        "gx": 0,
+                #        "gy": 0,
+                #        "x": 0,
+                #        "y": 0,
+                #        "h": 10,
+                #        "w": 10,
+                #        "Class": 0
+                #    }
+                #}
             ],
             "Yolo": {
                 "VerticalGridCount": 13,
@@ -66,6 +66,7 @@ def createModel(ModelStruckture, data=None):
         }
     modelScripts=["from tensorflow.keras.models import Sequential",
         "from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D",
+        "from PIL import Image",
         f"data={data}",
         "# Extract information from data",
         "num_classes = len(data['Classes'])",
