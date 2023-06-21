@@ -104,6 +104,7 @@ class WebcamWidget(QWidget):
         return (x, y, w, h)
     
     def capture_image(self):
+        
         self.capture.capture(f"{self.path}{self.count}.jpg")
         self.count+=1
 
