@@ -103,10 +103,16 @@ class WebcamWidget(QWidget):
         y = ((height - h) // 2)+self.offsetY
         return (x, y, w, h)
     
-    def capture_image(self):
-        
-        self.capture.capture(f"{self.path}{self.count}.jpg")
-        self.count+=1
+    def capture_image(self, folder=None):
+        if not folder:
+            file=f"{self.path}{self.count}.png"
+            self.capture.capture(file)
+            self.count+=1
+        else:
+            file=f"{folder}/image{self.count}.png"
+            self.capture.capture(file)
+            self.count+=1
+        return file
 
 if __name__=="__main__":
     app = QApplication(sys.argv)

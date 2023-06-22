@@ -13,8 +13,15 @@ else:
 class CameraWidget(QWidget):
     def __init__(self, *data, **data2):
         super().__init__()
+        print(data)
+        print(data2)
+        if "folder" in data2:
+            self.folder=data2["folder"]
         self.setMinimumSize(250, 500);
         self.initUI()
+
+    def SetFolder(self, folder):
+        self.folder=folder
 
     def initUI(self):
         layout = QGridLayout()
@@ -23,7 +30,7 @@ class CameraWidget(QWidget):
         type_layout=QHBoxLayout()
         type_layout.addWidget(QLabel('type:'))
         self.type_box = QComboBox()
-        self.type_box.addItems(['web', 'integratet'])
+        self.type_box.addItems(['integratet', 'web'])
         self.type_box.currentIndexChanged.connect(self.chancheType)
         
         type_layout.addWidget(self.type_box)
@@ -98,9 +105,14 @@ class CameraWidget(QWidget):
         layout.setRowStretch(4, 1)
 
         self.setLayout(layout)
+        self.Callback=None
+
+    def setCallback(self, Callback):
+        self.Callback=Callback
 
     def openCam(self):
-        dialog=CameraViewDialog(self)
+        dialog=CameraViewDialog(parent=self, folder=self.folder)
+        dialog.setSaveCallback(self.Callback)
         dialog.show()
 
     def chancheType(self, index):

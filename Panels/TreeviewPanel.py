@@ -325,7 +325,7 @@ class TreeviewPanel(QtWidgets.QWidget):
         return structure
 
 
-    def add_item(self, Ditem_type=None):
+    def add_item(self, Ditem_type=None, file=None):
         try:
             dialog=None
             if not Ditem_type:
@@ -352,8 +352,11 @@ class TreeviewPanel(QtWidgets.QWidget):
                     x_item = EditableStandardItem("x")
                     y_item = EditableStandardItem("y")
                     c_item = EditableStandardItem("Class")
-
-                    file_item.appendRow([EditableStandardItem("unknown"),EditableStandardItem("val")])
+                    if file:
+                         file_item.appendRow([EditableStandardItem(f"{file}"),EditableStandardItem("val")])
+                    else:
+                         file_item.appendRow([EditableStandardItem("unknown"),EditableStandardItem("val")])
+                         
                     gx_item.appendRow([EditableStandardItem("0"),EditableStandardItem("val")])
                     gy_item.appendRow([EditableStandardItem("0"),EditableStandardItem("val")])
                     x_item.appendRow([EditableStandardItem("0"),EditableStandardItem("val")])

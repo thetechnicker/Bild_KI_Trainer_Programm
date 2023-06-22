@@ -8,8 +8,10 @@ else:
     from WebcamWidget import WebcamWidget
 
 class CameraViewDialog(QDialog):
-    def __init__(self, parent=None, GridHeight=None, GridWidth=None):
+    def __init__(self, parent=None, GridHeight=None, GridWidth=None, folder=None):
         super().__init__(parent)
+        if folder:
+            self.folder=folder
         self.setMinimumSize(QtCore.QSize(1024, 480))
         self.resize(QtCore.QSize(1024, 480))
         self.setWindowTitle("PyQt Webcam Viewer")
@@ -86,9 +88,14 @@ class CameraViewDialog(QDialog):
         layout=QtWidgets.QHBoxLayout(self)
         layout.addWidget(self.cam)
         layout.addLayout(gridLayout)
+        self.saveCallback=None
+
+    def setSaveCallback(self, callback):
+        self.saveCallback=callback
 
     def saveIMG(self):
-        self.cam.capture_image()
+        file=self.cam.capture_image(self.folder)
+        self.saveCallback(file)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)

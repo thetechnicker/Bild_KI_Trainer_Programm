@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication
 from PyQt5 import QtWidgets, QtCore
 import sqlite3
 
-#from Panels.cam_panel import cam_panel
+#from Panels.self.cam_panel import self.cam_panel
 from Panels.CameraSettingWidget import CameraWidget as CamPanel
 from Panels.TreeviewPanel import TreeviewPanel
 from Panels.NewProjectWindow import ProjectDialog
@@ -100,8 +100,9 @@ class MainWindow(QMainWindow):
 
         self.NeuralNetEditor = NeuralNetEditor()
 
-        cam_panel = CamPanel([0, 0, 640, 480, 1, 100])
-        layout.setAlignment(cam_panel, QtCore.Qt.AlignTop)
+        self.cam_panel = CamPanel([0, 0, 640, 480, 1, 100],folder=self.img_folder)
+        self.cam_panel.setCallback(self.treeview.add_item)
+        layout.setAlignment(self.cam_panel, QtCore.Qt.AlignTop)
 
         console=PythonConsole()
         console.setCallback(self.clear)
@@ -109,14 +110,14 @@ class MainWindow(QMainWindow):
         self.h_splitter = QtWidgets.QSplitter()
         self.h_splitter.addWidget(self.treeview)
         self.h_splitter.addWidget(self.NeuralNetEditor)
-        self.h_splitter.addWidget(cam_panel)
+        self.h_splitter.addWidget(self.cam_panel)
         self.h_splitter.setSizes([10, 25, 10])
         
         
         #self.NeuralNetEditor.setCallback()
         
         
-        # Create a vertical splitter and add the horizontal splitter and cam_panel
+        # Create a vertical splitter and add the horizontal splitter and self.cam_panel
         self.v_splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
         self.v_splitter.addWidget(self.h_splitter)
         self.v_splitter.addWidget(console)
@@ -306,6 +307,7 @@ class MainWindow(QMainWindow):
                     self.currentProject = folder
                     self.treeview.setDB(self.DatabaseFile)
                     self.NeuralNetEditor.setProjectFolder(self.DatabaseFile)
+                    self.cam_panel.SetFolder(self.img_folder)
                     self.setWindowTitle(f"AI Trainer\t\t{self.currentProject}")
             else:
                 print("Projectfolder has no database")
