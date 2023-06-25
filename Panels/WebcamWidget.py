@@ -112,6 +112,7 @@ class WebcamWidget(QWidget):
             file=f"{folder}/image{self.count}.png"
             self.capture.capture(file)
             self.count+=1
+        print("Lol")
         return file
 
 if __name__=="__main__":
