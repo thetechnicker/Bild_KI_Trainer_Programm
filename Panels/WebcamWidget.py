@@ -103,7 +103,15 @@ class WebcamWidget(QWidget):
         y = ((height - h) // 2)+self.offsetY
         return (x, y, w, h)
     
-    def capture_image(self, folder=None):
+    def capture_image(self, folder=None) -> str:
+        """
+            Captures an image and saves it to a file.
+
+            :param folder: Optional; The folder in which to save the image. If not specified, the image will be saved in the default path.
+            :type folder: str
+            :return: The file path of the saved image.
+            :rtype: str
+        """
         if not folder:
             file=f"{self.path}{self.count}.png"
             self.capture.capture(file)
@@ -112,7 +120,7 @@ class WebcamWidget(QWidget):
             file=f"{folder}/image{self.count}.png"
             self.capture.capture(file)
             self.count+=1
-        print("Lol")
+        #print("Lol")
         return file
 
 if __name__=="__main__":

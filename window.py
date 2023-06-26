@@ -130,7 +130,7 @@ class MainWindow(QMainWindow):
             self.v_splitter.setSizes(v_sizes)
 
         main_layout.addWidget(self.v_splitter)
-        #self.openlast()
+        #
 
         # initialising optionMenü items
         new_class = QtWidgets.QAction('Create new Class', self)
@@ -147,6 +147,7 @@ class MainWindow(QMainWindow):
         new_cnn.setShortcut('Ctrl+Shift+n')
         new_cnn.triggered.connect(lambda: self.treeview.add_item("Neural Net"))
         options_menu.addAction(new_cnn)
+        self.openlast()
 
     def closeEvent(self,event):
         #self.save_projeck()
@@ -308,6 +309,7 @@ class MainWindow(QMainWindow):
                     self.treeview.setDB(self.DatabaseFile)
                     self.NeuralNetEditor.setProjectFolder(self.DatabaseFile)
                     self.cam_panel.SetFolder(self.img_folder)
+                    self.cam_panel.setCallback(self.treeview.add_item)
                     self.setWindowTitle(f"AI Trainer\t\t{self.currentProject}")
             else:
                 print("Projectfolder has no database")
@@ -319,11 +321,15 @@ class MainWindow(QMainWindow):
             self.treeview.clear()
         if "lastProject" in self.data:
             folder_name = os.path.basename(self.data["lastProject"])
-            file_name = f'{folder_name}.db'
-            file_path = os.path.join(self.data["lastProject"], file_name)
-            folder_name = os.path.basename(file_path)
-            file_name = f'{folder_name}.db'
-            self.DatabaseFile = os.path.join(folder_name, file_name)
+            file_name   = f'{folder_name}.db'
+            file_path   = os.path.join(self.data["lastProject"], file_name)
+            print(folder_name )
+            print(file_name   )
+            print(file_path   )
+            #folder_name = os.path.basename(file_path)
+            #file_name = f'{folder_name}.db'
+            self.DatabaseFile = file_path
+            print(self.DatabaseFile)
             if os.path.exists(self.DatabaseFile):
                 try:                
                     connection=sqlite3.connect(self.DatabaseFile)
@@ -331,12 +337,20 @@ class MainWindow(QMainWindow):
                 except Exception as e:
                     print(f"Error: {e}")
                 finally:
-                    self.cnn_folder     = os.path.join(folder_name, "cnn")
-                    self.img_folder     = os.path.join(folder_name, "img")
-                    self.export_folder  = os.path.join(folder_name, "exports")
-                    self.currentProject = folder_name
+                    self.cnn_folder     = os.path.join(self.data["lastProject"], "cnn")
+                    self.img_folder     = os.path.join(self.data["lastProject"], "img")
+                    self.export_folder  = os.path.join(self.data["lastProject"], "exports")
+                    self.currentProject = self.data["lastProject"]
+
+                    print(self.cnn_folder    )
+                    print(self.img_folder    )
+                    print(self.export_folder )
+                    print(self.currentProject)
+
                     self.treeview.setDB(self.DatabaseFile)
                     self.NeuralNetEditor.setProjectFolder(self.DatabaseFile)
+                    self.cam_panel.SetFolder(self.img_folder)
+                    self.cam_panel.setCallback(self.treeview.add_item)
                     self.setWindowTitle(f"AI Trainer\t\t{self.currentProject}")
             else:
                 print("Projectfolder has no database")

@@ -13,8 +13,8 @@ else:
 class CameraWidget(QWidget):
     def __init__(self, *data, **data2):
         super().__init__()
-        print(data)
-        print(data2)
+        #print(data)
+        #print(data2)
         if "folder" in data2:
             self.folder=data2["folder"]
         self.setMinimumSize(250, 500);
@@ -72,6 +72,7 @@ class CameraWidget(QWidget):
 
         self.container_widget = QWidget()
         self.container_widget.setLayout(self.web_layout)
+        self.container_widget.hide()
 
         layout.addWidget(self.container_widget, 2, 0)
         
@@ -88,7 +89,6 @@ class CameraWidget(QWidget):
         
         self.Camera_container_widget = QWidget()
         self.Camera_container_widget.setLayout(self.CameraLayout)
-        self.Camera_container_widget.hide()
 
         layout.addWidget(self.Camera_container_widget, 3, 0)
 
