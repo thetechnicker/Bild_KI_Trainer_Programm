@@ -4,3 +4,5 @@
 *$py.class
 *.pyc
 Panels/__pycache__/
+
+settings.json
