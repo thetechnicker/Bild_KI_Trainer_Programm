@@ -30,7 +30,7 @@ class CameraWidget(QWidget):
         type_layout=QHBoxLayout()
         type_layout.addWidget(QLabel('type:'))
         self.type_box = QComboBox()
-        self.type_box.addItems(['integratet', 'web'])
+        self.type_box.addItems(['integratet'])#todo , 'web'])
         self.type_box.currentIndexChanged.connect(self.chancheType)
         
         type_layout.addWidget(self.type_box)
@@ -79,8 +79,8 @@ class CameraWidget(QWidget):
         camera_list = []
         cameras = QCameraInfo.availableCameras()
         
-        for i in range(len(cameras)):
-            camera_list.append(str(i+1))
+        for i in cameras:
+            camera_list.append(f"{i.description()}")
         
         self.CameraSelect = QComboBox()
         self.CameraSelect.addItems(camera_list)

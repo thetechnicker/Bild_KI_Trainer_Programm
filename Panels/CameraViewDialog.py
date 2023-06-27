@@ -95,11 +95,15 @@ class CameraViewDialog(QDialog):
 
     def saveIMG(self):
         file=self.cam.capture_image(self.folder)
-        self.saveCallback(file)
+        self.saveCallback(file=file)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
         print(self.size())
+
+    def closeEvent(self, event):
+        self.cam.stop()
+        event.accept() 
     
     def updateGrid(self,text):
         try:

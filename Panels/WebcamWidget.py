@@ -123,6 +123,9 @@ class WebcamWidget(QWidget):
         #print("Lol")
         return file
 
+    def stop(self):
+        self.camera.stop()
+
 if __name__=="__main__":
     app = QApplication(sys.argv)
     window = WebcamWidget()

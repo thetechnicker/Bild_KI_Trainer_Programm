@@ -75,6 +75,10 @@ class AddDialog(QtWidgets.QDialog):
         item_name = self.name_input.text()
         return (item_type, item_name)
 
+    def setSelection(self, Type:str=None)->None:
+        """Set the Type and hide the Combobox"""
+        self.type_select.setCurrentText(Type)
+
 class TreeviewPanel(QtWidgets.QWidget):
     def __init__(self, file_path=None):
         super().__init__()
@@ -330,6 +334,8 @@ class TreeviewPanel(QtWidgets.QWidget):
             dialog=None
             if not Ditem_type:
                 dialog = AddDialog(self)
+                if file:
+                    dialog.setSelection("Image")
 
             if dialog or Ditem_type:
                 item_type=None

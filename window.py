@@ -342,9 +342,9 @@ class MainWindow(QMainWindow):
                     self.export_folder  = os.path.join(self.data["lastProject"], "exports")
                     self.currentProject = self.data["lastProject"]
 
-                    print(self.cnn_folder    )
-                    print(self.img_folder    )
-                    print(self.export_folder )
+                    print(self.cnn_folder)
+                    print(self.img_folder)
+                    print(self.export_folder)
                     print(self.currentProject)
 
                     self.treeview.setDB(self.DatabaseFile)
