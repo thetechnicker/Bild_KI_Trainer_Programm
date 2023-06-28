@@ -75,18 +75,18 @@ class WebcamWidget(QWidget):
 
         self.camera.start()
 
+    def setGrid(self, x=None, y=None, width=None, height=None, horizontal_lines=None, vertical_lines=None):
+        self.offsetX=x
+        self.offsetY=y
+        x_new, y_new, _, _ =self.getDimension()
+        self.overlay.update_grid(x=x_new, y=y_new, width=width,height=height,horizontal_lines=horizontal_lines, vertical_lines=vertical_lines)
+    
     def resizeEvent(self, event):
         super().resizeEvent(event)
         x, y, w, h =self.getDimension() 
         #print(x,y, h, w, width, height, scale)
         self.overlay.update_grid(x=int(x),y=int(y),width=int(w),height=int(h))
         self.overlay.resize(self.viewfinder.size())
-
-    def setGrid(self, x=None, y=None, width=None, height=None, horizontal_lines=None, vertical_lines=None):
-        self.offsetX=x
-        self.offsetY=y
-        x_new, y_new, _, _ =self.getDimension()
-        self.overlay.update_grid(x=x_new, y=y_new, width=width,height=height,horizontal_lines=horizontal_lines, vertical_lines=vertical_lines)
     
     def getDimension(self):
         size=self.viewfinder.size()
