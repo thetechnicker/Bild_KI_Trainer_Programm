@@ -84,7 +84,7 @@ class MainWindow(QMainWindow):
 
         # Create the options menu
         options_menu = menubar.addMenu('Project')
-        cnn=QtWidgets.QAction("edit CNN Processor code")
+        #cnn=QtWidgets.QAction("edit CNN Processor code")
 
         # Create the window menu and add actions
         window_menu = menubar.addMenu('Window')
