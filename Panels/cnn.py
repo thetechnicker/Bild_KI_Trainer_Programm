@@ -56,6 +56,7 @@ def createModel(ModelStruckture, data=None):
         modelScript = file.read()
     # Ersetze {data} durch f"{data}"
     modelScript = modelScript.replace('{data}', f'{data}')
+    modelScript = modelScript.replace('{ModelStruckture}', f'{ModelStruckture}')
     globals={}
     exec(modelScript, globals)
     print(globals)
