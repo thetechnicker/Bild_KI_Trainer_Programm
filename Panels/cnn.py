@@ -45,64 +45,17 @@ def createModel(ModelStruckture, data=None):
                 "3"
             ],
             "Images": [
-                #{
-                #    "label": "Test",
-                #    "File": "C:/Users/lucas/Documents/Python/GUI/Bild_KI_Trainer_Programm/image0.jpg",
-                #    "Yolo": {
-                #        "gx": 0,
-                #        "gy": 0,
-                #        "x": 0,
-                #        "y": 0,
-                #        "h": 10,
-                #        "w": 10,
-                #        "Class": 0
-                #    }
-                #}
             ],
             "Yolo": {
                 "VerticalGridCount": 13,
                 "HorizontalGridCount": 13
             }
         }
-    modelScripts=["from tensorflow.keras.models import Sequential",
-        "from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D",
-        "from PIL import Image",
-        f"data={data}",
-        "# Extract information from data",
-        "num_classes = len(data['Classes'])",
-        "vgc = data['Yolo']['VerticalGridCount']",
-        "hgc = data['Yolo']['HorizontalGridCount']",
-        "output_size = 5 + num_classes",
-        "",
-        "# Create x and y datasets",
-        "x = []",
-        "y = []",
-        "for image in data['Images']:",
-        "    # Load image data into a numpy array",
-        "    #img_data = np.load(image['File'], allow_pickle=True)",
-        "    # Open the image file",
-        "    img = Image.open(image['File'])",
-        "",
-        "    # Convert the image to a numpy array",
-        "    img_data = np.array(img)",
-        "    print(f'Input: {img_data}')",
-        "    ",
-        "    x.append(img_data)",
-        "    ",
-        "    # Create yolo output for image",
-        "    yolo = image['Yolo']",
-        "    gx, gy = yolo['gx'], yolo['gy']",
-        "    output = np.zeros((vgc, hgc, output_size))",
-        "    output[gy, gx, :5] = [yolo['x'], yolo['y'], yolo['w'], yolo['h'], 1]",
-        "    output[gy, gx, 5 + yolo['Class']] = 1",
-        "    print(f'Output: {output}')",
-        "    y.append(output)",
-        "x = np.array(x)",
-        "y = np.array(y)",
-        f"{ModelStruckture}"]
-    seperator="\n"
-    modelScript=seperator.join(modelScripts)
-    print(modelScript)
+    # Lade modelScript aus einer Datei
+    with open('modelScript.txt', 'r') as file:
+        modelScript = file.read()
+    # Ersetze {data} durch f"{data}"
+    modelScript = modelScript.replace('{data}', f'{data}')
     globals={}
     exec(modelScript, globals)
     print(globals)
