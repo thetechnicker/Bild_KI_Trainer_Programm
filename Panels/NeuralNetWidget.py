@@ -3,7 +3,7 @@ import sys
 import threading
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QTabWidget, QTextEdit
-from PyQt5.QtGui import QSyntaxHighlighter, QTextCharFormat, QFont, QColor, QIcon
+from PyQt5.QtGui import QSyntaxHighlighter, QTextCharFormat, QFont, QColor, QIcon, QKeySequence
 from PyQt5.QtCore import QRegExp
 if __name__ == "__main__":
     from cnn import *
@@ -13,22 +13,94 @@ else:
 projectFolder=None
 
 class PythonHighlighter(QSyntaxHighlighter):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, patternType:str=None):
         super(PythonHighlighter, self).__init__(parent)
-
         keywordFormat1 = QTextCharFormat()
         keywordFormat1.setFontWeight(QFont.Bold)
         keywordFormat1.setForeground(QColor("blue"))
-
-        keywordPatterns = ["\\bSequential\\b",
-                           "\\bConv2D\\b",
-                           "\\bMaxPooling2D\\b",
-                           "\\bFlatten\\b",
-                           "\\bDense\\b",
-                           "\\badd\\b",
-                           "\\bpadding\\b",
-                           "\\bactivation\\b",
-                           "\\bpool_size\\b"]
+        if not patternType:
+            keywordPatterns = ["\\bSequential\\b",
+                               "\\bConv2D\\b",
+                               "\\bMaxPooling2D\\b",
+                               "\\bFlatten\\b",
+                               "\\bDense\\b",
+                               "\\badd\\b",
+                               "\\bpadding\\b",
+                               "\\bactivation\\b",
+                               "\\bpool_size\\b"]
+        elif patternType.lower()=="python":
+            keywordPatterns = ["\\band\\b", 
+                                "\\bas\\b", 
+                                "\\bassert\\b", 
+                                "\\bbreak\\b", 
+                                "\\bclass\\b", 
+                                "\\bcontinue\\b", 
+                                "\\bdef\\b", 
+                                "\\bdel\\b", 
+                                "\\belif\\b", 
+                                "\\belse\\b", 
+                                "\\bexcept\\b", 
+                                "\\bFalse\\b",
+                                "\\bfinally\\b",
+                                "\\bfor\\b", 
+                                "\\bfrom\\b",
+                                "\\bglobal\\b",
+                                "\\bif\\b",
+                                "\\bin\\b",
+                                "\\bis\\b",
+                                "\\bimport\\b",
+                                "\\bin\\b",
+                                "\\bis\\b",
+                                "\\blambda\\b",
+                                "\\bNone\\b",
+                                "\\bnonlocal\\b",
+                                "\\bnot\\b",
+                                "\\bor\\b",
+                                "\\bpass\\b",
+                                "\\braise\\b", 
+                                "\\breturn\\b", 
+                                "\\bTrue\\b", 
+                                "\\btry\\b", 
+                                "\\bwhile\\b", 
+                                "\\bwith\\b", 
+                                "\\byield\\b"
+                                "\\band\\b",
+                                "\\bas\\b",
+                                "\\bassert\\b",
+                                "\\bbreak\\b",
+                                "\\bclass\\b",
+                                "\\bcontinue\\b",
+                                "\\bdef\\b",
+                                "\\bdel\\b",
+                                "\\belif\\b",
+                                "\\belse\\b",
+                                "\\bexcept\\b",
+                                "\\bFalse\\b",
+                                "\\bfinally\\b",
+                                "\\bfor\\b",
+                                "\\bfrom\\b",
+                                "\\bglobal\\b",
+                                "\\bif\\b",
+                                "\\bin\\b",
+                                "\\bis\\b",
+                                "\\bimport\\b",
+                                "\\bin\\b",
+                                "\\bis\\b",
+                                "\\blambda\\b",
+                                "\\bNone\\b",
+                                "\\bnonlocal\\b",
+                                "\\bnot\\b",
+                                "\\bor\\b",
+                                "\\bpass\\b",
+                                "\\braise\\b",
+                                "\\breturn\\b",
+                                "\\bTrue\\b",
+                                "\\btry\\b",
+                                "\\bwhile\\b",
+                                "\\bwith\\b",
+                                "\\byield\\b"]
+        else:
+            raise ValueError("wrong patternType")
 
         rules = [(QRegExp(pattern), keywordFormat1) for pattern in keywordPatterns]
 
@@ -145,6 +217,8 @@ class FileEditor(QWidget):
         super().__init__()
         global setCallback
         self.setMinimumSize(400, 500);
+        #shortcut = QtWidgets.QShortcut(QKeySequence('Ctrl+S'), self)
+        #shortcut.activated.connect(self.save())
         layout = QVBoxLayout()
         self.setLayout(layout)
 
@@ -196,7 +270,7 @@ class FileEditor(QWidget):
         self.ScriptThread = None
 
 
-    def add_view(self, filename):
+    def add_view(self, filename, patternType=None):
         textEdit = QTextEdit()
         font = QFont()
         font.setPointSize(9)
@@ -210,8 +284,10 @@ class FileEditor(QWidget):
 
         # Set the tab stop distance to be equivalent to the desired number of spaces
         textEdit.setTabStopDistance(space_width * spaces_per_tab)
-
-        highlighter = PythonHighlighter(textEdit.document())
+        if not patternType:
+            highlighter = PythonHighlighter(textEdit.document())
+        else:
+            highlighter=PythonHighlighter(textEdit.document(),"python")
         highlighter.setParent(textEdit)
         with open(filename, 'r') as file:
             textEdit.setPlainText(file.read())
@@ -219,6 +295,7 @@ class FileEditor(QWidget):
         self.tabWidget.addTab(textEdit, os.path.basename(filename))
 
     def save(self, path):
+        global projectFolder
         for i in range(self.tabWidget.count()):
                 tab_text = self.tabWidget.widget(i).toPlainText()
                 tab_name = self.tabWidget.tabText(i)
@@ -234,9 +311,10 @@ class FileEditor(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    window = FileEditor()
+    #window = FileEditor()
     window = FileEditor()
     window.add_view('./neuralNet.pynns')
+    window.add_view('./neuralNet.pynns',"python")
     window.setProjectFolder("C:/Users/lucas/Documents/Python/GUI/Bild_KI_Trainer_Programm/test.db")
     window.show()
     app.exec_()

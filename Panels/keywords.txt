@@ -1,4 +1,4 @@
-"\\band\\b", 
+["\\band\\b", 
 "\\bas\\b", 
 "\\bassert\\b", 
 "\\bbreak\\b", 
@@ -67,4 +67,4 @@
 "\\btry\\b",
 "\\bwhile\\b",
 "\\bwith\\b",
-"\\byield\\b",
+"\\byield\\b"]

@@ -84,7 +84,10 @@ class MainWindow(QMainWindow):
 
         # Create the options menu
         options_menu = menubar.addMenu('Project')
-        #cnn=QtWidgets.QAction("edit CNN Processor code")
+        cnn=QtWidgets.QAction("edit CNN Processor code", self)
+        cnn.triggered.connect(self.editCNN_Processor)
+        options_menu.addAction(cnn)
+        options_menu.addSeparator()
 
         # Create the window menu and add actions
         window_menu = menubar.addMenu('Window')
@@ -172,6 +175,11 @@ class MainWindow(QMainWindow):
                 name=item.text().replace(" ", "_")
                 path=os.path.join(self.cnn_folder,f"{name}.pynns")
                 self.NeuralNetEditor.add_view(path)
+
+    def editCNN_Processor(self):
+        window = NeuralNetEditor()
+        window.add_view('./modelScript.txt', "python")
+        window.show()
 
     def settings(self):
         dialog = settingDialog(data["projectFolder"], self)
