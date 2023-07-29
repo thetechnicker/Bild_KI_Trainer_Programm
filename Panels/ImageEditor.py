@@ -112,8 +112,8 @@ class MyDialog(QtWidgets.QDialog):
         scale = min(width_scale, height_scale)
         w=(FW*scale)#-self.offsetX
         h=(FH*scale)#-self.offsetY
-        x = ((width - w) // 2) +self.offsetX
-        y = ((height - h) // 2)+self.offsetY
+        x = ((width - w) // 2) #+self.offsetX
+        y = ((height - h) // 2)#+self.offsetY
         return (x, y, w, h)
 
 if __name__ == "__main__":
