@@ -10,7 +10,7 @@ from Panels.CameraSettingWidget import CameraWidget as CamPanel
 from Panels.TreeviewPanel import TreeviewPanel
 from Panels.NewProjectWindow import ProjectDialog
 from Panels.settingDialog import settingDialog
-#from Panels.NeuralNetWidget import FileEditor as NeuralNetEditor
+from Panels.neuralNetEditor import NeuralNetEditor
 from Panels.consolenWidget import PythonConsole
 
 import subprocess
@@ -99,7 +99,7 @@ class MainWindow(QMainWindow):
         self.treeview = TreeviewPanel()
         self.treeview.set_callback(self.Treeview_click_event)
 
-        #self.NeuralNetEditor = NeuralNetEditor()
+        self.NeuralNetEditor = NeuralNetEditor()
 
         self.cam_panel = CamPanel([0, 0, 640, 480, 1, 100],folder=self.img_folder)
         self.cam_panel.setCallback(self.treeview.add_item)
@@ -110,7 +110,7 @@ class MainWindow(QMainWindow):
         # Create a horizontal splitter and add the treeview and NeuralNetEditor
         self.h_splitter = QtWidgets.QSplitter()
         self.h_splitter.addWidget(self.treeview)
-        #self.h_splitter.addWidget(self.NeuralNetEditor)
+        self.h_splitter.addWidget(self.NeuralNetEditor)
         self.h_splitter.addWidget(self.cam_panel)
         self.h_splitter.setSizes([10, 25, 10])
         
