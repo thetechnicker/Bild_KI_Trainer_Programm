@@ -10,7 +10,7 @@ from Panels.CameraSettingWidget import CameraWidget as CamPanel
 from Panels.TreeviewPanel import TreeviewPanel
 from Panels.NewProjectWindow import ProjectDialog
 from Panels.settingDialog import settingDialog
-from Panels.NeuralNetWidget import FileEditor as NeuralNetEditor
+#from Panels.NeuralNetWidget import FileEditor as NeuralNetEditor
 from Panels.consolenWidget import PythonConsole
 
 import subprocess
@@ -85,9 +85,6 @@ class MainWindow(QMainWindow):
         # Create the options menu
         options_menu = menubar.addMenu('Project')
         cnn=QtWidgets.QAction("edit CNN Processor code", self)
-        cnn.triggered.connect(self.editCNN_Processor)
-        options_menu.addAction(cnn)
-        options_menu.addSeparator()
 
         # Create the window menu and add actions
         window_menu = menubar.addMenu('Window')
@@ -102,7 +99,7 @@ class MainWindow(QMainWindow):
         self.treeview = TreeviewPanel()
         self.treeview.set_callback(self.Treeview_click_event)
 
-        self.NeuralNetEditor = NeuralNetEditor()
+        #self.NeuralNetEditor = NeuralNetEditor()
 
         self.cam_panel = CamPanel([0, 0, 640, 480, 1, 100],folder=self.img_folder)
         self.cam_panel.setCallback(self.treeview.add_item)
@@ -113,7 +110,7 @@ class MainWindow(QMainWindow):
         # Create a horizontal splitter and add the treeview and NeuralNetEditor
         self.h_splitter = QtWidgets.QSplitter()
         self.h_splitter.addWidget(self.treeview)
-        self.h_splitter.addWidget(self.NeuralNetEditor)
+        #self.h_splitter.addWidget(self.NeuralNetEditor)
         self.h_splitter.addWidget(self.cam_panel)
         self.h_splitter.setSizes([10, 25, 10])
         
@@ -174,12 +171,7 @@ class MainWindow(QMainWindow):
                 print("test")
                 name=item.text().replace(" ", "_")
                 path=os.path.join(self.cnn_folder,f"{name}.pynns")
-                self.NeuralNetEditor.add_view(path)
-
-    def editCNN_Processor(self):
-        window = NeuralNetEditor()
-        window.add_view('./modelScript.txt', "python")
-        window.show()
+               #self.NeuralNetEditor.add_view(path)
 
     def settings(self):
         dialog = settingDialog(data["projectFolder"], self)
@@ -236,7 +228,6 @@ class MainWindow(QMainWindow):
                         class INTEGER
                     )
                 ''')
-
                 DataBase.execute('''
                     CREATE TABLE IF NOT EXISTS Yolo (
                         id INTEGER AUTO_INCREMENT,
@@ -251,7 +242,6 @@ class MainWindow(QMainWindow):
                         INSERT INTO Yolo (label, value) VALUES ('{k}', '{i}')
                         """
                     )
-                
 
                 connection.commit()
 
@@ -292,7 +282,7 @@ class MainWindow(QMainWindow):
                 os.mkdir(self.img_folder)
                 os.mkdir(self.export_folder)
                 self.treeview.setDB(self.DatabaseFile)
-                self.NeuralNetEditor.setProjectFolder(self.DatabaseFile)
+               #self.NeuralNetEditor.setProjectFolder(self.DatabaseFile)
                 self.setWindowTitle(f"AI Trainer\t\t{self.currentProject}")
 
     def open_projeck(self):
@@ -316,7 +306,7 @@ class MainWindow(QMainWindow):
                     self.export_folder  = os.path.join(folder, "exports")
                     self.currentProject = folder
                     self.treeview.setDB(self.DatabaseFile)
-                    self.NeuralNetEditor.setProjectFolder(self.DatabaseFile)
+                   #self.NeuralNetEditor.setProjectFolder(self.DatabaseFile)
                     self.cam_panel.SetFolder(self.img_folder)
                     self.cam_panel.setCallback(self.treeview.add_item)
                     self.setWindowTitle(f"AI Trainer\t\t{self.currentProject}")
@@ -357,7 +347,7 @@ class MainWindow(QMainWindow):
                     print(self.currentProject)
 
                     self.treeview.setDB(self.DatabaseFile)
-                    self.NeuralNetEditor.setProjectFolder(self.DatabaseFile)
+                   #self.NeuralNetEditor.setProjectFolder(self.DatabaseFile)
                     self.cam_panel.SetFolder(self.img_folder)
                     self.cam_panel.setCallback(self.treeview.add_item)
                     self.setWindowTitle(f"AI Trainer\t\t{self.currentProject}")
