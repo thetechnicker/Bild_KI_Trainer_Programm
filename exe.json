@@ -76,10 +76,6 @@
   {
    "optionDest": "datas",
    "value": "C:/Users/lucas/Documents/Python/GUI/Bild_KI_Trainer_Programm/settings.json;."
-  },
-  {
-   "optionDest": "pathex",
-   "value": "C:/Users/lucas/anaconda3/envs/KI_Trainer"
   }
  ],
  "nonPyinstallerOptions": {
