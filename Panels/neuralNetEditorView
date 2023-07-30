@@ -1,0 +1,26 @@
+from PyQt5 import QtWidgets
+
+from neuralNetEditor import NeuralNetEditor
+
+class NeuralNetTabView(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+
+        # Create the tab widget
+        self.tab_widget = QtWidgets.QTabWidget()
+
+        # Add tabs for each neural net
+        for i in range(3):
+            editor = NeuralNetEditor()
+            self.tab_widget.addTab(editor, f'Neural Net {i+1}')
+
+        # Lay out the UI elements
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.addWidget(self.tab_widget)
+
+
+if __name__ == '__main__':
+    app = QtWidgets.QApplication([])
+    window = NeuralNetTabView()
+    window.show()
+    app.exec_()
