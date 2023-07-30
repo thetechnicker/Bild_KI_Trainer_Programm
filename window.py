@@ -10,10 +10,23 @@ from Panels.CameraSettingWidget import CameraWidget as CamPanel
 from Panels.TreeviewPanel import TreeviewPanel
 from Panels.NewProjectWindow import ProjectDialog
 from Panels.settingDialog import settingDialog
-#from Panels.neuralNetEditor import NeuralNetEditor
+from Panels.neuralNetEditorView import NeuralNetTabView
 from Panels.consolenWidget import PythonConsole
 
 import subprocess
+import traceback
+
+def my_excepthook(exc_type, exc_value, exc_traceback):
+    # Format the traceback
+    tb_lines = traceback.format_tb(exc_traceback)
+    tb_text = ''.join(tb_lines)
+
+    # Print the traceback, name, and value of the exception
+    print(f'Traceback:\n{tb_text}')
+    print(f'Exception name: {exc_type.__name__}')
+    print(f'Exception value: {exc_value}')
+
+sys.excepthook = my_excepthook
 
 
 try:
@@ -88,8 +101,8 @@ class MainWindow(QMainWindow):
 
         # Create the window menu and add actions
         window_menu = menubar.addMenu('Window')
-        #trainingsdaten_action = QtWidgets.QAction('Trainingsdaten', self, checkable=True)
-        #window_menu.addAction(trainingsdaten_action)
+        
+        self.NeuralNetEditor = NeuralNetTabView()
 
         central_widget = QtWidgets.QWidget()
         self.setCentralWidget(central_widget)
@@ -99,7 +112,6 @@ class MainWindow(QMainWindow):
         self.treeview = TreeviewPanel()
         self.treeview.set_callback(self.Treeview_click_event)
 
-        #self.NeuralNetEditor = NeuralNetEditor()
 
         self.cam_panel = CamPanel([0, 0, 640, 480, 1, 100],folder=self.img_folder)
         self.cam_panel.setCallback(self.treeview.add_item)
@@ -110,7 +122,7 @@ class MainWindow(QMainWindow):
         # Create a horizontal splitter and add the treeview and NeuralNetEditor
         self.h_splitter = QtWidgets.QSplitter()
         self.h_splitter.addWidget(self.treeview)
-        #self.h_splitter.addWidget(self.NeuralNetEditor)
+        self.h_splitter.addWidget(self.NeuralNetEditor)
         self.h_splitter.addWidget(self.cam_panel)
         self.h_splitter.setSizes([10, 25, 10])
         
@@ -148,7 +160,7 @@ class MainWindow(QMainWindow):
         new_cnn.setShortcut('Ctrl+Shift+n')
         new_cnn.triggered.connect(lambda: self.treeview.add_item("Neural Net"))
         options_menu.addAction(new_cnn)
-        self.openlast()
+        #self.openlast()
 
     def closeEvent(self,event):
         #self.save_projeck()
@@ -170,8 +182,8 @@ class MainWindow(QMainWindow):
             if parent.text()=="Neuronale Netze":
                 print("test")
                 name=item.text().replace(" ", "_")
-                path=os.path.join(self.cnn_folder,f"{name}.pynns")
-               #self.NeuralNetEditor.add_view(path)
+                path=os.path.join(self.cnn_folder,f"{name}.json")
+                self.NeuralNetEditor.add_tab(path)
 
     def settings(self):
         dialog = settingDialog(data["projectFolder"], self)
@@ -283,8 +295,7 @@ class MainWindow(QMainWindow):
                 os.mkdir(self.img_folder)
                 os.mkdir(self.export_folder)
                 self.treeview.setDB(self.DatabaseFile)
-               #self.NeuralNetEditor.setProjectFolder(self.DatabaseFile)
-                self.setWindowTitle(f"AI Trainer\t\t{self.currentProject}")
+                self.NeuralNetEditor.set_project_folder(self.cnn_folder)
 
     def open_projeck(self):
         if self.DatabaseFile:
@@ -307,7 +318,7 @@ class MainWindow(QMainWindow):
                     self.export_folder  = os.path.join(folder, "exports")
                     self.currentProject = folder
                     self.treeview.setDB(self.DatabaseFile)
-                   #self.NeuralNetEditor.setProjectFolder(self.DatabaseFile)
+                    self.NeuralNetEditor.set_project_folder(self.DatabaseFile)
                     self.cam_panel.SetFolder(self.img_folder)
                     self.cam_panel.setCallback(self.treeview.add_item)
                     self.setWindowTitle(f"AI Trainer\t\t{self.currentProject}")
@@ -360,7 +371,7 @@ class MainWindow(QMainWindow):
     def save_projeck(self):
         try:
             self.treeview.saveDb()
-            #self.NeuralNetEditor.save(self.cnn_folder)
+            self.NeuralNetEditor.save_all()
         except Exception as e:
             print(f"error: {e}")
         

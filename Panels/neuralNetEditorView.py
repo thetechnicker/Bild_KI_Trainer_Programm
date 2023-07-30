@@ -1,6 +1,6 @@
 from PyQt5 import QtWidgets
 
-if __name__ == '__main__':
+if __name__=="__main__":
     from neuralNetEditor import NeuralNetEditor
 else:
     from .neuralNetEditor import NeuralNetEditor
@@ -31,6 +31,12 @@ class NeuralNetTabView(QtWidgets.QWidget):
         # Add the editor as a new tab
         tab_name = f'Neural Net {self.tab_widget.count()+1}'
         self.tab_widget.addTab(editor, tab_name)
+
+    def save_all(self):
+        # Save the state of each tab
+        for i in range(self.tab_widget.count()):
+            editor = self.tab_widget.widget(i)
+            editor.on_save()
 
 
 if __name__ == '__main__':
