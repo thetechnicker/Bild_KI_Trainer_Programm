@@ -539,7 +539,7 @@ class TreeviewPanel(QtWidgets.QWidget):
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
-    tree_view_panel = TreeviewPanel("C:/Users/lucas/Documents/Python/GUI/Bild_KI_Trainer_Programm/test.db")
+    tree_view_panel = TreeviewPanel(os.path.expanduser("~/Documents/Python/GUI/Bild_KI_Trainer_Programm/test.db"))
     tree_view_panel.show()
     app.exec_()
     tree_view_panel.saveDb()
