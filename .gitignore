@@ -9,3 +9,4 @@ Panels/__pycache__/
 #exe2.json
 #exe.json
 *.json
+/test
