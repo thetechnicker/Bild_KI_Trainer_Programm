@@ -380,7 +380,9 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-
+    if not os.path.exists("./settings.json"):
+        with open("./settings.json") as f:
+            json.dump({}, f)
     with open("./settings.json") as f:
         data=json.load(f)
     if not "projectFolder" in data or not os.path.exists(data["projectFolder"]):

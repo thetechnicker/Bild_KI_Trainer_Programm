@@ -5,6 +5,7 @@
 *.pyc
 Panels/__pycache__/
 
-settings.json
-exe2.json
-exe.json
+#settings.json
+#exe2.json
+#exe.json
+*.json
