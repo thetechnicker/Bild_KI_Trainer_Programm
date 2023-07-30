@@ -74,7 +74,6 @@ class NeuralNetEditor(QtWidgets.QWidget):
             else:
                 self.layers_list.addItem(layer_type)
 
-
     def on_train(self):
         if not self.projectFolder:
             raise ValueError('projectFolder is not set')
@@ -82,14 +81,11 @@ class NeuralNetEditor(QtWidgets.QWidget):
         dbFile=os.path.join(self.projectFolder, projectName, ".db")
         connection = sqlite3.connect(dbFile)
         cursor = connection.cursor()
-
         cursor.execute('SELECT * FROM images')
         image_data = cursor.fetchall()
-
         # Query the database for the number of classes
         cursor.execute('SELECT COUNT(*) FROM classes')
         num_classes = cursor.fetchone()[0]
-
         # Query the database for the Yolo settings
         cursor.execute('SELECT label, value FROM Yolo')
         yolo_data = cursor.fetchall()
@@ -97,7 +93,6 @@ class NeuralNetEditor(QtWidgets.QWidget):
         vgc = yolo_settings['VerticalGridCount']
         hgc = yolo_settings['HorizontalGridCount']
         output_size = 5 + num_classes
-
         # Create x and y datasets
         x = []
         y = []
@@ -105,7 +100,6 @@ class NeuralNetEditor(QtWidgets.QWidget):
             # Load image data into a numpy array
             img_data = np.load(image['file'], allow_pickle=True)
             x.append(img_data)
-
             # Create yolo output for image
             gx, gy = image['gx'], image['gy']
             output = np.zeros((vgc, hgc, output_size))
@@ -114,7 +108,6 @@ class NeuralNetEditor(QtWidgets.QWidget):
             y.append(output)
         x = np.array(x)
         y = np.array(y)
-
         # Get the selected pretrained model
         pretrained_model_name = self.pretrained_model_combo.currentText()
         if pretrained_model_name == 'VGG16':
@@ -123,24 +116,21 @@ class NeuralNetEditor(QtWidgets.QWidget):
             base_model = ResNet50(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
         elif pretrained_model_name == 'InceptionV3':
             base_model = InceptionV3(weights='imagenet', include_top=False, input_shape=(299, 299, 3))
-
         if not pretrained_model_name=='none':
             # Freeze the layers of the base model
             for layer in base_model.layers:
                 layer.trainable = False
-
             # Create a new model by adding layers on top of the base model
             self.model.add(base_model)
         if self.LoadedModel:
-
             self.model.add(self.LoadedModel)
-       
+    
         # Add the new layers
         for i in range(self.layers_list.count()):
             layer_text = self.layers_list.item(i).text()
             layer_type, layer_params = layer_text.split('(', 1)
             layer_params = layer_params[:-1]
-            
+
             # Check if the layer is pretrained
             is_pretrained = False
             if layer_type in self.pretrained_layers:
@@ -148,7 +138,7 @@ class NeuralNetEditor(QtWidgets.QWidget):
                 self.pretrained_layers[layer_type].pop(0)
                 if not self.pretrained_layers[layer_type]:
                     del self.pretrained_layers[layer_type]
-            
+
             if not is_pretrained:
                 if layer_type == 'Dense':
                     units = int(layer_params)
@@ -164,20 +154,26 @@ class NeuralNetEditor(QtWidgets.QWidget):
                 elif layer_type == 'MaxPooling2D':
                     pool_size = int(layer_params)
                     self.model.add(MaxPooling2D(pool_size))
-
         # Compile the model
         self.model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-
         # Train the model
         self.model.fit(x, y, epochs=10)
 
-    
-    
     def on_save(self, filename):
         if not filename:
             raise ValueError('filename is not set')
         self.save_settings(filename)
 
+    def save_settings(self, filename):
+        # Create a dictionary with the settings
+        settings = {
+            'pretrained_model': self.pretrained_model_combo.currentText(),
+            'layers': [self.layers_list.item(i).text() for i in range(self.layers_list.count())]
+        }
+
+        # Save the settings to a file
+        with open(filename, 'w') as f:
+            json.dump(settings, f)
 
     def load_settings(self, filename):
         # Load the settings from a file
@@ -193,32 +189,27 @@ class NeuralNetEditor(QtWidgets.QWidget):
         self.layers_list.clear()
         for layer_text in settings['layers']:
             self.layers_list.addItem(layer_text)
-            
-    def on_export(self):
+
+    def on_export(self, filename):
+        if not filename:
+            raise ValueError('filename is not set')
         if self.model.optimizer is None:
             raise RuntimeError('Model has not been compiled')
-        if not __name__=="__main__":
-            exportFolder=os.path.join(self.projectFolder,"exports")
-        else:
-            exportFolder=os.path.expanduser('~/Documents')
-        # Prompt the user for a filename
-        filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Export model', exportFolder, 'HDF5 Files (*.h5)')
-        if filename:
-            # Save the model to the file
-            self.model.save(filename)
-    
-    def on_open(self, filename=None):
+        
+        # Save the model to the file
+        self.model.save(filename)
+
+    def on_open(self, filename):
         if not filename:
-            # Prompt the user for a filename
-            filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Open model', os.path.expanduser('~/Documents'), ' Model Files (*.json *.h5);;JSON Files (*.json);;HDF5 Files (*.h5)')
-        if filename:
-            if filename.endswith('.json'):
-                # Load settings from a JSON file
-                self.load_settings(filename)
-            else:
-                # Load model from a TensorFlow file
-                self.LoadedModel = load_model(filename)
-                self.update_layers_list()
+            raise ValueError('filename is not set')
+        
+        if filename.endswith('.json'):
+            # Load settings from a JSON file
+            self.load_settings(filename)
+        else:
+            # Load model from a TensorFlow file
+            self.LoadedModel = load_model(filename)
+            self.update_layers_list()
 
     def update_layers_list(self):
         # Clear the layers list
