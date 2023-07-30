@@ -82,6 +82,7 @@ class NeuralNetEditor(QtWidgets.QWidget):
           raise ValueError('projectFolder is not set')
         projectName=os.path.basename(self.projectFolder)
         dbFile=os.path.join(self.projectFolder, projectName, ".db")
+        print(dbFile)
         connection = sqlite3.connect(dbFile)
         cursor = connection.cursor()
         cursor.execute('SELECT * FROM images')
