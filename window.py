@@ -87,9 +87,17 @@ class MainWindow(QMainWindow):
         close_action.setShortcut('Ctrl+Q')
         close_action.triggered.connect(self.close)
 
+        import_action =QtWidgets.QAction('Import', self)
+        close_action.triggered.connect(self.close)
+
+        export_action =QtWidgets.QAction('Export', self)
+        close_action.triggered.connect(self.close)
+
         file_menu.addAction(new_action)
         file_menu.addAction(open_action)
         file_menu.addAction(save_action)
+        file_menu.addSeparator()
+        file_menu.addAction(import_action)
         file_menu.addSeparator()
         file_menu.addAction(settings)
         file_menu.addSeparator()

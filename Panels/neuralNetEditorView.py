@@ -38,6 +38,11 @@ class NeuralNetTabView(QtWidgets.QWidget):
             editor = self.tab_widget.widget(i)
             editor.on_save()
 
+    def cnnImport(self, neuralnet):
+        raise NotImplementedError()
+    
+    def cnnExport(self, neuralnet):
+        raise NotImplementedError()
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
