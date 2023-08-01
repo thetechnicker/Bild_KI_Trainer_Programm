@@ -537,6 +537,8 @@ class TreeviewPanel(QtWidgets.QWidget):
             for i in range(root.rowCount()):
                 self.model.removeRow(i)
 
+
+
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
     tree_view_panel = TreeviewPanel("../test.db")

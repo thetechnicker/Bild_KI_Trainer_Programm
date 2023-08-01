@@ -27,7 +27,7 @@ def my_excepthook(exc_type, exc_value, exc_traceback):
     print(f'Exception value: {exc_value}')
 
 sys.excepthook = my_excepthook
-
+"""
 
 try:
     #msg.setWindowTitle('Succses')
@@ -48,7 +48,7 @@ except:
 
 #msg.exec_()
 #del app
-
+"""
 class MainWindow(QMainWindow):
     def __init__(self, data):
         super().__init__()
@@ -168,10 +168,10 @@ class MainWindow(QMainWindow):
         new_cnn.setShortcut('Ctrl+Shift+n')
         new_cnn.triggered.connect(lambda: self.treeview.add_item("Neural Net"))
         options_menu.addAction(new_cnn)
-        #self.openlast()
+        self.openlast()
 
     def closeEvent(self,event):
-        #self.save_projeck()
+        self.save_projeck()
         
         h_sizes = self.h_splitter.sizes()
         v_sizes = self.v_splitter.sizes()
@@ -233,8 +233,7 @@ class MainWindow(QMainWindow):
                 DataBase.execute('''
                     CREATE TABLE IF NOT EXISTS neural_nets (
                         id INTEGER PRIMARY KEY,
-                        name TEXT,
-                        file TEXT
+                        name TEXT
                     )
                 ''')
                 DataBase.execute('''
@@ -303,7 +302,7 @@ class MainWindow(QMainWindow):
                 os.mkdir(self.img_folder)
                 os.mkdir(self.export_folder)
                 self.treeview.setDB(self.DatabaseFile)
-                self.NeuralNetEditor.set_project_folder(self.cnn_folder)
+                self.NeuralNetEditor.set_project_folder(self.DatabaseFile)
 
     def open_projeck(self):
         if self.DatabaseFile:
@@ -330,6 +329,7 @@ class MainWindow(QMainWindow):
                     self.cam_panel.SetFolder(self.img_folder)
                     self.cam_panel.setCallback(self.treeview.add_item)
                     self.setWindowTitle(f"AI Trainer\t\t{self.currentProject}")
+                    self.update_database(self.currentProject)
             else:
                 print("Projectfolder has no database")
         else:
@@ -367,10 +367,11 @@ class MainWindow(QMainWindow):
                     print(self.currentProject)
 
                     self.treeview.setDB(self.DatabaseFile)
-                   #self.NeuralNetEditor.setProjectFolder(self.DatabaseFile)
+                    self.NeuralNetEditor.set_project_folder(self.DatabaseFile)
                     self.cam_panel.SetFolder(self.img_folder)
                     self.cam_panel.setCallback(self.treeview.add_item)
                     self.setWindowTitle(f"AI Trainer\t\t{self.currentProject}")
+                    self.update_database(self.currentProject)
             else:
                 print("Projectfolder has no database")
 
@@ -385,6 +386,47 @@ class MainWindow(QMainWindow):
         
     def clear(self):
         self.treeview.clear()
+
+    def update_database(self, project_folder):
+        """
+        OUT OF ORDER
+        """
+        return
+        # Set the path to the database file
+        db_file = os.path.join(project_folder, f'{os.path.basename(project_folder)}.db')
+        # Check if the database file exists
+        if not os.path.exists(db_file):
+            raise ValueError(f'Database file not found: {db_file}')
+        # Connect to the database
+        connection = sqlite3.connect(db_file)
+        cursor = connection.cursor()
+        # Query the database for all rows in the images table
+        cursor.execute('SELECT id, file FROM images')
+        rows = cursor.fetchall()
+        # Iterate over the rows
+        for row in rows:
+            row_id = row[0]
+            file_path = row[2]
+            # Check if the file exists
+            if not os.path.exists(file_path):
+                # Delete the row from the table
+                cursor.execute('DELETE FROM images WHERE id=?', (row_id,))
+        # Query the database for all rows in the neural_nets table
+        cursor.execute('SELECT id, name FROM neural_nets')
+        rows = cursor.fetchall()
+        # Iterate over the rows
+        for row in rows:
+            row_id = row[0]
+            file_name = row[1]
+            # Set the path to the file
+            file_path = os.path.join(project_folder, file_name)
+            # Check if the file exists
+            if not os.path.exists(file_path):
+                # Delete the row from the table
+                cursor.execute('DELETE FROM neural_nets WHERE id=?', (row_id,))
+        # Commit changes and close the connection
+        connection.commit()
+        connection.close()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

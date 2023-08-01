@@ -2,9 +2,10 @@ import json
 import os
 import sqlite3
 from PyQt5 import QtWidgets, QtGui
+import tensorflow as tf
 from tensorflow.keras.applications import VGG16, ResNet50, InceptionV3
 from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D
+from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D, Reshape
 import numpy as np
 
 class NeuralNetEditor(QtWidgets.QWidget):
@@ -78,10 +79,14 @@ class NeuralNetEditor(QtWidgets.QWidget):
               self.layers_list.addItem(layer_type)
 
     def on_train(self):
+        tf.config.run_functions_eagerly(True)
+        tf.data.experimental.enable_debug_mode()
+        if self.model:
+           self.model=Sequential()
         if not self.projectFolder:
           raise ValueError('projectFolder is not set')
-        projectName=os.path.basename(self.projectFolder)
-        dbFile=os.path.join(self.projectFolder, projectName, ".db")
+        dbFile=self.projectFolder
+        
         print(dbFile)
         connection = sqlite3.connect(dbFile)
         cursor = connection.cursor()
@@ -93,7 +98,9 @@ class NeuralNetEditor(QtWidgets.QWidget):
         # Query the database for the Yolo settings
         cursor.execute('SELECT label, value FROM Yolo')
         yolo_data = cursor.fetchall()
-        yolo_settings = {row['label']: row['value'] for row in yolo_data}
+        print(yolo_data)
+        
+        yolo_settings = {row[0]: int(row[1]) for row in yolo_data}
         vgc = yolo_settings['VerticalGridCount']
         hgc = yolo_settings['HorizontalGridCount']
         output_size = 5 + num_classes
@@ -112,28 +119,38 @@ class NeuralNetEditor(QtWidgets.QWidget):
           y.append(output)
         x = np.array(x)
         y = np.array(y)
+        y_shape = y.shape[1:]
+        output_size = np.prod(y_shape)
+        print(x,y,sep="\n")
+
         # Get the selected pretrained model
         pretrained_model_name = self.pretrained_model_combo.currentText()
         if pretrained_model_name == 'VGG16':
-          base_model = VGG16(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
+          base_model = VGG16(weights='imagenet', include_top=False, input_shape=x.shape[1:])
         elif pretrained_model_name == 'ResNet50':
-          base_model = ResNet50(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
+          base_model = ResNet50(weights='imagenet', include_top=False, input_shape=x.shape[1:])
         elif pretrained_model_name == 'InceptionV3':
-          base_model = InceptionV3(weights='imagenet', include_top=False, input_shape=(299, 299, 3))
+          base_model = InceptionV3(weights='imagenet', include_top=False, input_shape=x.shape[1:])
         if not pretrained_model_name=='none':
           # Freeze the layers of the base model
           for layer in base_model.layers:
             layer.trainable = False
           # Create a new model by adding layers on top of the base model
           self.model.add(base_model)
+        else:
+            self.model.add(Conv2D(32, (3, 3), input_shape=x.shape[1:]))
+
         if self.LoadedModel:
           self.model.add(self.LoadedModel)
     
         # Add the new layers
         for i in range(self.layers_list.count()):
           layer_text = self.layers_list.item(i).text()
-          layer_type, layer_params = layer_text.split('(', 1)
-          layer_params = layer_params[:-1]
+          if "(" in layer_text:
+            layer_type, layer_params = layer_text.split('(', 1)
+            layer_params = layer_params[:-1]
+          else:
+             layer_type=layer_text
 
           # Check if the layer is pretrained
           is_pretrained = False
@@ -158,8 +175,12 @@ class NeuralNetEditor(QtWidgets.QWidget):
             elif layer_type == 'MaxPooling2D':
               pool_size = int(layer_params)
               self.model.add(MaxPooling2D(pool_size))
+
+
+        self.model.add(Dense(output_size, activation='sigmoid'))
+        self.model.add(Reshape(y_shape))
         # Compile the model
-        self.model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+        self.model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'], run_eagerly=True)
         # Train the model
         self.model.fit(x, y, epochs=10)
 
