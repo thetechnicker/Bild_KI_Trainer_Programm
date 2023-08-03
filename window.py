@@ -7,11 +7,13 @@ import sqlite3
 
 #from Panels.self.cam_panel import self.cam_panel
 from Panels.CameraSettingWidget import CameraWidget as CamPanel
+from Panels.ImageEditor import ImageEditor
 from Panels.TreeviewPanel import TreeviewPanel
 from Panels.NewProjectWindow import ProjectDialog
 from Panels.settingDialog import settingDialog
 from Panels.neuralNetEditorView import NeuralNetTabView
 from Panels.consolenWidget import PythonConsole
+import dbPrinter
 
 import subprocess
 import traceback
@@ -185,13 +187,24 @@ class MainWindow(QMainWindow):
 
     def Treeview_click_event(self, item, parent):
         print(item.text())
+        #print(parent.get)
         if parent:
             print(parent.text())
             if parent.text()=="Neuronale Netze":
-                print("test")
+                #print("test")
                 name=item.text().replace(" ", "_")
                 path=os.path.join(self.cnn_folder,f"{name}.json")
                 self.NeuralNetEditor.add_tab(path)
+            elif parent.text() == "Classes":
+                pass
+            elif parent.text() == "Yolo" or (lambda parent: False if parent.parent() is None else parent.parent().text() == "Yolo")(parent):
+                pass
+            elif parent.text()=="Images":
+                if item.hasChildren():
+                    file= self.treeview.get_item_by_name("File")
+                    #print(file)               
+                    print(file.child(0).text())
+                #imageEditor= ImageEditor()
 
     def settings(self):
         dialog = settingDialog(data["projectFolder"], self)
@@ -320,6 +333,7 @@ class MainWindow(QMainWindow):
                 except Exception as e:
                     print(f"Error: {e}")
                 finally:
+                    dbPrinter.print_database(self.DatabaseFile)
                     self.cnn_folder     = os.path.join(folder, "cnn")
                     self.img_folder     = os.path.join(folder, "img")
                     self.export_folder  = os.path.join(folder, "exports")
@@ -356,6 +370,7 @@ class MainWindow(QMainWindow):
                 except Exception as e:
                     print(f"Error: {e}")
                 finally:
+                    dbPrinter.print_database(self.DatabaseFile)
                     self.cnn_folder     = os.path.join(self.data["lastProject"], "cnn")
                     self.img_folder     = os.path.join(self.data["lastProject"], "img")
                     self.export_folder  = os.path.join(self.data["lastProject"], "exports")
@@ -378,11 +393,11 @@ class MainWindow(QMainWindow):
 
 
     def save_projeck(self):
-        try:
+        #try:
             self.treeview.saveDb()
             self.NeuralNetEditor.save_all()
-        except Exception as e:
-            print(f"error: {e}")
+        #except Exception as e:
+         #   print(f"error: {e}")
         
     def clear(self):
         self.treeview.clear()

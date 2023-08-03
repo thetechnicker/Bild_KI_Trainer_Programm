@@ -1,7 +1,8 @@
 import math
+import os
 from PyQt5.QtCore import Qt
 from PyQt5 import QtGui
-from PyQt5.QtMultimedia import QCamera, QCameraInfo, QCameraImageCapture
+from PyQt5.QtMultimedia import QCamera, QCameraInfo, QCameraImageCapture, QImageEncoderSettings
 from PyQt5.QtMultimediaWidgets import QCameraViewfinder
 from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget
 import sys
@@ -55,6 +56,8 @@ class WebcamWidget(QWidget):
     def __init__(self, CameraInfo=QCameraInfo.defaultCamera(), imgPath="d:/Images/image"):
         super().__init__()
         self.path=imgPath
+        #if not os.path.exists(os.path.split(self.path)[0]):
+        #    os.mkdir(os.path.split(self.path)[0])
         self.offsetX=0
         self.offsetY=0
         self.camera = QCamera(CameraInfo)
@@ -69,7 +72,7 @@ class WebcamWidget(QWidget):
 
         self.capture = QCameraImageCapture(self.camera)
         self.capture.setCaptureDestination(QCameraImageCapture.CaptureToFile)
-
+        
         layout = QVBoxLayout(self)
         layout.addWidget(self.viewfinder)
 
@@ -113,11 +116,11 @@ class WebcamWidget(QWidget):
             :rtype: str
         """
         if not folder:
-            file=f"{self.path}{self.count}.png"
+            file=f"{self.path}{self.count}"
             self.capture.capture(file)
             self.count+=1
         else:
-            file=f"{folder}/image{self.count}.png"
+            file=f"{folder}/image{self.count}"
             self.capture.capture(file)
             self.count+=1
         #print("Lol")

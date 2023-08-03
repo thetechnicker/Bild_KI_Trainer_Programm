@@ -49,9 +49,9 @@ class Overlay(QtWidgets.QWidget):
         except Exception as e:
             print(e)
 
-class MyDialog(QtWidgets.QDialog):
-    def __init__(self, *args, **kwargs):
-        super(MyDialog, self).__init__(*args, **kwargs)
+class ImageEditor(QtWidgets.QDialog):
+    def __init__(self, image:str=None):
+        super().__init__()
         self.setWindowTitle("My Dialog")
 
         # Create layout
@@ -75,8 +75,22 @@ class MyDialog(QtWidgets.QDialog):
 
         file_layout.addWidget(self.file_input)
         file_layout.addWidget(file_button)
+        # Create OK and Cancel buttons
+        self.ok_button = QtWidgets.QPushButton('OK')
+        self.cancel_button = QtWidgets.QPushButton('Cancel')
+
+        # Connect the buttons to their respective slots
+        self.ok_button.clicked.connect(self.on_ok)
+        self.cancel_button.clicked.connect(self.on_cancel)
+
+        # Add the buttons to the layout
+        button_layout = QtWidgets.QHBoxLayout()
+        button_layout.addWidget(self.ok_button)
+        button_layout.addWidget(self.cancel_button)
+
 
         input_layout.addLayout(file_layout)
+        input_layout.addLayout(button_layout)
 
         self.int_inputs = []
         for i in range(5):

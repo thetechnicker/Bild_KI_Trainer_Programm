@@ -110,14 +110,15 @@ class TreeviewPanel(QtWidgets.QWidget):
         
         button_layout.addWidget(add_button)
 
-        remove_button = QtWidgets.QPushButton('Remove')
+        remove_button = QtWidgets.QPushButton('get_structure')
         
-        remove_button.clicked.connect(self.remove_item)
+        remove_button.clicked.connect(self.get_structure)
         
         button_layout.addWidget(remove_button)
         
         layout.addLayout(button_layout)
         self.callback=None
+        self.nextID=0
         self.tree_view.doubleClicked.connect(self.on_double_click)
         if self.file_path and self.file_path.endswith('.db'):
             self.load_db(self.file_path)
@@ -145,7 +146,7 @@ class TreeviewPanel(QtWidgets.QWidget):
             if not item.is_non() and not item.is_folder():
                 self.model.removeRow(index.row(), index.parent())
 
-    def get_item_by_name(self, name=None):
+    def get_item_by_name(self, name=None, parent=None):
         if name==None or name=="":
             return None
         def search_children(parent):
@@ -157,9 +158,11 @@ class TreeviewPanel(QtWidgets.QWidget):
                 if result:
                     return result
             return None
-
-        root = self.model.invisibleRootItem()
-        return search_children(root)
+        if not parent:
+            root = self.model.invisibleRootItem()
+            return search_children(root)
+        else:
+            return search_children(parent)
 
 
     def add_items(self, parent, data):
@@ -169,13 +172,16 @@ class TreeviewPanel(QtWidgets.QWidget):
             if key=="Images":
                 parent_name="Images"
                 self.model.appendRow([EditableStandardItem(parent_name),EditableStandardItem("folder")])
-                #print(value)
-                for i in value:
+                print(value)
+                for k,i in enumerate(value):
                     #print(i)
+                    self.nextID=k+1
                     parent = self.get_item_by_name("Images")
                     name_item = EditableStandardItem(i["label"])
+                    #id_item = EditableStandardItem(f"{k}")
                     file_item = EditableStandardItem("File")
                     name_item.appendRow([file_item,EditableStandardItem("non")])
+                    #name_item.appendRow([id_item,EditableStandardItem("id")])
                     if "Yolo" in i:
                         yolo_item = EditableStandardItem("Yolo")
                         gx_item = EditableStandardItem("gx")
@@ -262,72 +268,137 @@ class TreeviewPanel(QtWidgets.QWidget):
                     break
         return parent_item
     
-    def get_structure(self):
-        root=self.model.invisibleRootItem()
-        structure={}
-        for i in range(root.rowCount()):
-            item=root.child(i)
-            if item.text()=="Classes":
-                d=[]
-                if item.hasChildren():
-                    for j in range(item.rowCount()):
-                        d.append(item.child(i).text())
-                structure["Classes"]=d
-            elif item.text()=="Neuronale Netze":
-                d=[]
-                if item.hasChildren():
-                    for j in range(item.rowCount()):
-                        t=item.child(j).text()
-                        #print(t)
-                        d.append(t)
-                structure["Neuronale Netze"]=d
-            elif item.text()=="Images":
-                d=[]
-                if item.hasChildren():
-                    for j in range(item.rowCount()):
-                        item=item.child(j)
-                        img_data={}
-                        img_data["label"]=item.text()
-                        if item.hasChildren():
-                            for k in range(item.rowCount()):
-                                #print(item.child(k).text())
-                                if item.child(k).text()=="File":
-                                    img_data["File"]=item.child(k).child(0).text()
-                                elif item.child(k).text()=="Yolo":
-                                    
-                                    Yolo_data={}
-                                    item=item.child(k)
-                                    if item.hasChildren():
-                                        for l in range(item.rowCount()):
-                                            try:
-                                                p=item.child(l).text()
-                                                t=item.child(l).child(0).text()
-                                                try:
-                                                    Yolo_data[p]=int(t)
-                                                except:
-                                                    Yolo_data[p]=t
-                                            except:
-                                                pass
-                                    img_data["Yolo"]=Yolo_data
-                                else:
-                                    img_data["rest"]="Error"
-                        d.append(img_data)
+    # def get_structure(self):
+    #     print("------------------------")
+    #     root=self.model.invisibleRootItem()
+    #     structure={}
+    #     for i in range(root.rowCount()):
+    #         item=root.child(i)
+    #         print(item.text())
+    #         if item.text()=="Classes":
+    #             d=[]
+    #             if item.hasChildren():
+    #                 for j in range(item.rowCount()):
+    #                     print(item.child(j).text())
+    #                     d.append(item.child(i).text())
+    #             structure["Classes"]=d
+    #         elif item.text()=="Neuronale Netze":
+    #             d=[]
+    #             if item.hasChildren():
+    #                 for j in range(item.rowCount()):
+    #                     print(item.child(j).text())
+    #                     t=item.child(j).text()
+    #                     #print(t)
+    #                     d.append(t)
+    #             structure["Neuronale Netze"]=d
+    #         elif item.text()=="Images":
+    #             d=[]
+    #             if item.hasChildren():
+    #                 for j in range(item.rowCount()):
+    #                     print(f"imag {j} Label:{item.child(j).text()}")
+    #                     img_item=item.child(j)
+    #                     img_data={}
+    #                     img_data["label"]=item.text()
+    #                     if img_item.hasChildren():
+    #                         for k in range(img_item.rowCount()):
+    #                             param_item=img_item.child(k)
+    #                             print(f"params {j}:{param_item.text()}")
+    #                             if param_item.text()=="File":
+    #                                 img_data["File"]=param_item.child(0).text()
+    #                             elif "yolo" in param_item.text().lower():
+    #                                 Yolo_data={}
+    #                                 img_yolo_item=param_item
+    #                                 if img_yolo_item.hasChildren():
+    #                                     print("Yolo hasChildren")
+    #                                     for l in range(img_yolo_item.rowCount()):
+    #                                         print(img_yolo_item.child(l).text())
+    #                                         try:
+    #                                             p=img_yolo_item.child(l).text()
+    #                                             t=img_yolo_item.child(l).child(0).text()
+    #                                             print(img_yolo_item.child(l).child(0).text())
+    #                                             try:
+    #                                                 Yolo_data[p]=int(t)
+    #                                             except:
+    #                                                 print("error")
+    #                                                 Yolo_data[p]=t
+    #                                         except:
+    #                                             print(dir(img_yolo_item))
+    #                                 img_data["Yolo"]=Yolo_data
+    #                             else:
+    #                                 img_data["rest"]="Error"
+    #                     d.append(img_data)
                         
-                structure["Images"]=d
-            elif item.text()=="Yolo":
-                data={}
+    #             structure["Images"]=d
+    #         elif item.text()=="Yolo":
+    #             data={}
+    #             if item.hasChildren():
+    #                 for j in range(item.rowCount()):
+    #                     s_item=item.child(j)
+    #                     key=s_item.text()
+    #                     if s_item.hasChildren():
+    #                         value=s_item.child(0).text()
+    #                         data[key]= value
+
+    #             structure["Yolo"]=data
+    #     print(structure)
+    #     print("------------------------")
+    #     return structure
+
+    def get_structure(self):
+        print("-------------------------------------")
+        # Zugriff auf das Modell des TreeView
+        model = self.tree_view.model()
+        # Zugriff auf das unsichtbare Wurzelelement des TreeView
+        root = model.invisibleRootItem()
+        # Initialisierung des Ergebnis-Wörterbuchs
+        structure = {}
+        # Durchlaufen der Elemente auf der obersten Ebene des TreeView
+        for i in range(root.rowCount()):
+            item = root.child(i)
+            key = item.text()
+            # Behandlung der verschiedenen Schlüssel im Wörterbuch separat
+            if key in ['Classes', 'Neuronale Netze']:
+                value = []
                 if item.hasChildren():
                     for j in range(item.rowCount()):
-                        s_item=item.child(j)
-                        key=s_item.text()
-                        if s_item.hasChildren():
-                            value=s_item.child(0).text()
-                            data[key]= value
-
-                structure["Yolo"]=data
-
+                        child_item = item.child(j)
+                        value.append(child_item.text())
+            elif key == 'Images':
+                value = []
+                if item.hasChildren():
+                    for j in range(item.rowCount()):
+                        child_item = item.child(j)
+                        image_data = {'label': child_item.text()}
+                        if child_item.hasChildren():
+                            for k in range(child_item.rowCount()):
+                                grandchild_item = child_item.child(k)
+                                grandchild_key = grandchild_item.text()
+                                if grandchild_key == 'File':
+                                    image_data['File'] = grandchild_item.child(0).text()
+                                elif grandchild_key.lower() == 'yolo':
+                                    yolo_data = {}
+                                    if grandchild_item.hasChildren():
+                                        for l in range(grandchild_item.rowCount()):
+                                            greatgrandchild_item = grandchild_item.child(l)
+                                            greatgrandchild_key = greatgrandchild_item.text().lower()
+                                            greatgrandchild_value = int(greatgrandchild_item.child(0).text())
+                                            yolo_data[greatgrandchild_key] = greatgrandchild_value
+                                    image_data['Yolo'] = yolo_data
+                        value.append(image_data)
+            elif key == 'Yolo':
+                value = {}
+                if item.hasChildren():
+                    for j in range(item.rowCount()):
+                        child_item = item.child(j)
+                        child_key = child_item.text()
+                        child_value = int(child_item.child(0).text())
+                        value[child_key] = child_value
+            else:
+                continue
+            structure[key] = value
+            # Auskommentiertes Debug-Print-Statement
+            print(f'Added key: {key}, value: {value}')
         return structure
-
 
     def add_item(self, Ditem_type=None, file=None):
         try:
@@ -488,48 +559,130 @@ class TreeviewPanel(QtWidgets.QWidget):
         # Add items to the tree view
         self.add_items(self.model.invisibleRootItem(), data)
 
+    # def saveDb(self, filename=None):
+    #     if not filename:
+    #         filename=self.file_path
+    #     # Get the structure of the tree view
+    #     d = self.get_structure()
+    #     print(d)
+    #     # Connect to the database
+    #     conn = sqlite3.connect(filename)
+    #     c = conn.cursor()
+
+    #     # Clear the tables
+    #     c.execute('DELETE FROM classes')
+    #     c.execute('DELETE FROM neural_nets')
+    #     c.execute('DELETE FROM images')
+    #     c.execute('DELETE FROM Yolo')
+
+    #     # Insert data into the tables
+    #     try:
+    #         for class_name in d['Classes']:
+    #             c.execute('INSERT INTO classes (name) VALUES (?)', (class_name,))
+    #     except Exception as e:
+    #         print(f"error: {e}")
+    #     try:
+    #         for net_name in d['Neuronale Netze']:
+    #             c.execute('INSERT INTO neural_nets (name) VALUES (?)', (net_name,))
+    #     except Exception as e:
+    #         print(f"error: {e}")
+    #     try:
+    #         for img_data in d['Images']:
+    #             yolo_data = img_data['Yolo']
+    #             values = (img_data['label'], img_data['File'], yolo_data['gx'], yolo_data['gy'], yolo_data['x'], yolo_data['y'], yolo_data['Class'])
+    #             c.execute('INSERT INTO images (label, file, gx, gy, x, y, class) VALUES (?, ?, ?, ?, ?, ?, ?)', values)
+    #     except Exception as e:
+    #         print(f"error: {e}")
+    #     try:
+    #         for key, value in d["Yolo"].items():
+    #             c.execute(f'INSERT INTO Yolo (label, value) VALUES ("{key}", "{value}")')
+    #     except Exception as e:
+    #         print(f"error: {e}")
+    #     # Commit changes and close the database connection
+    #     conn.commit()
+    #     conn.close()
+
     def saveDb(self, filename=None):
         if not filename:
-            filename=self.file_path
+            filename = self.file_path
         # Get the structure of the tree view
         d = self.get_structure()
         print(d)
         # Connect to the database
         conn = sqlite3.connect(filename)
-        c = conn.cursor()
+        c = conn.cursor()   
 
-        # Clear the tables
-        c.execute('DELETE FROM classes')
-        c.execute('DELETE FROM neural_nets')
-        c.execute('DELETE FROM images')
-        c.execute('DELETE FROM Yolo')
-
-        # Insert data into the tables
+        # Update the classes table
         try:
-            for class_name in d['Classes']:
+            # Get the current classes from the database
+            c.execute('SELECT name FROM classes')
+            current_classes = set(name for name, in c.fetchall())
+            # Get the new classes from the tree view
+            new_classes = set(d['Classes'])
+            # Insert new classes
+            for class_name in new_classes - current_classes:
                 c.execute('INSERT INTO classes (name) VALUES (?)', (class_name,))
+            # Delete removed classes
+            for class_name in current_classes - new_classes:
+                c.execute('DELETE FROM classes WHERE name=?', (class_name,))
         except Exception as e:
-            print(f"error: e")
+            raise e   
+
+        # Update the neural_nets table
         try:
-            for net_name in d['Neuronale Netze']:
+            # Get the current neural nets from the database
+            c.execute('SELECT name FROM neural_nets')
+            current_neural_nets = set(name for name, in c.fetchall())
+            # Get the new neural nets from the tree view
+            new_neural_nets = set(d['Neuronale Netze'])
+            # Insert new neural nets
+            for net_name in new_neural_nets - current_neural_nets:
                 c.execute('INSERT INTO neural_nets (name) VALUES (?)', (net_name,))
+            # Delete removed neural nets
+            for net_name in current_neural_nets - new_neural_nets:
+                c.execute('DELETE FROM neural_nets WHERE name=?', (net_name,))
         except Exception as e:
-            print(f"error: e")
+            raise e    
+
+        # Update the images table
         try:
+            # Get the current images from the database
+            c.execute('SELECT label FROM images')
+            current_images = set(label for label, in c.fetchall())
+            # Get the new images from the tree view
+            new_images = set(img_data['label'] for img_data in d['Images'])
+            # Insert new images
             for img_data in d['Images']:
-                yolo_data = img_data['Yolo']
-                values = (img_data['label'], img_data['File'], yolo_data['gx'], yolo_data['gy'], yolo_data['x'], yolo_data['y'], yolo_data['Class'])
-                c.execute('INSERT INTO images (label, file, gx, gy, x, y, class) VALUES (?, ?, ?, ?, ?, ?, ?)', values)
+                if img_data['label'] not in current_images:
+                    yolo_data = img_data['Yolo']
+                    values = (img_data['label'], img_data['File'], yolo_data['gx'], yolo_data['gy'], yolo_data['x'], yolo_data['y'], yolo_data['class'])
+                    c.execute('INSERT INTO images (label, file, gx, gy, x, y, class) VALUES (?, ?, ?, ?, ?, ?, ?)', values)
+            # Delete removed images
+            for label in current_images - new_images:
+                c.execute('DELETE FROM images WHERE label=?', (label,))
         except Exception as e:
-            print(f"error: e")
+            raise e   
+
+        # Update the Yolo table
         try:
+            # Get the current Yolo settings from the database
+            c.execute('SELECT label FROM Yolo')
+            current_yolo_settings = set(label for label, in c.fetchall())
+            # Get the new Yolo settings from the tree view
+            new_yolo_settings = set(d["Yolo"].keys())
+            # Insert or update Yolo settings
             for key, value in d["Yolo"].items():
-                c.execute(f'INSERT INTO Yolo (label, value) VALUES ("{key}", "{value}")')
+                if key in current_yolo_settings:
+                    c.execute(f'UPDATE Yolo SET value="{value}" WHERE label="{key}"')
+                else:
+                    c.execute(f'INSERT INTO Yolo (label, value) VALUES ("{key}", "{value}")')
         except Exception as e:
-            print(f"error: e")
+            raise e     
+
         # Commit changes and close the database connection
         conn.commit()
         conn.close()
+
 
     def clear(self):
         root=self.model.invisibleRootItem()

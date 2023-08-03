@@ -5,8 +5,9 @@ from PyQt5 import QtWidgets, QtGui
 import tensorflow as tf
 from tensorflow.keras.applications import VGG16, ResNet50, InceptionV3
 from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D, Reshape
+from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D, Reshape, Input
 import numpy as np
+from PIL import Image
 
 class NeuralNetEditor(QtWidgets.QWidget):
     def __init__(self, projectFolder=None, neuralnetFile=None):
@@ -78,6 +79,11 @@ class NeuralNetEditor(QtWidgets.QWidget):
           else:
               self.layers_list.addItem(layer_type)
 
+    def list_to_dict(self, lst):
+        keys = ['id', 'label', 'file', 'gx', 'gy', 'x', 'y', 'class']
+        return dict(zip(keys, lst))
+
+
     def on_train(self):
         tf.config.run_functions_eagerly(True)
         tf.data.experimental.enable_debug_mode()
@@ -107,14 +113,17 @@ class NeuralNetEditor(QtWidgets.QWidget):
         # Create x and y datasets
         x = []
         y = []
-        for image in image_data:
+        for img in image_data:
+          image=self.list_to_dict(img)
           # Load image data into a numpy array
-          img_data = np.load(image['file'], allow_pickle=True)
+          l_image = Image.open(f"{image['file']}.jpg")
+          # Convert the image to a NumPy array
+          img_data = np.array(l_image)
           x.append(img_data)
           # Create yolo output for image
           gx, gy = image['gx'], image['gy']
           output = np.zeros((vgc, hgc, output_size))
-          output[gy, gx, :5] = [image['x'], image['y'], image['w'], image['h'], 1]
+          output[gy, gx, :5] = [image['x'], image['y'], image['gx'], image['gy'], 1]
           output[gy, gx, 5 + image['class']] = 1
           y.append(output)
         x = np.array(x)
@@ -138,7 +147,7 @@ class NeuralNetEditor(QtWidgets.QWidget):
           # Create a new model by adding layers on top of the base model
           self.model.add(base_model)
         else:
-            self.model.add(Conv2D(32, (3, 3), input_shape=x.shape[1:]))
+            self.model.add(Input(input_shape=x.shape[1:]))
 
         if self.LoadedModel:
           self.model.add(self.LoadedModel)
@@ -176,7 +185,7 @@ class NeuralNetEditor(QtWidgets.QWidget):
               pool_size = int(layer_params)
               self.model.add(MaxPooling2D(pool_size))
 
-
+        self.model.add(Flatten())
         self.model.add(Dense(output_size, activation='sigmoid'))
         self.model.add(Reshape(y_shape))
         # Compile the model
