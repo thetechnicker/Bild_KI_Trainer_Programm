@@ -6,6 +6,7 @@ import tensorflow as tf
 from tensorflow.keras.applications import VGG16, ResNet50, InceptionV3
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D, Reshape, Input
+from threading import Thread
 import numpy as np
 from PIL import Image
 
@@ -27,7 +28,7 @@ class NeuralNetEditor(QtWidgets.QWidget):
 
         # Connect signals
         self.add_layer_button.clicked.connect(self.on_add_layer)
-        self.train_button.clicked.connect(self.on_train)
+        self.train_button.clicked.connect(self.on_train_thread)
 
         # Lay out the UI elements
         layout = QtWidgets.QVBoxLayout(self)
@@ -83,6 +84,13 @@ class NeuralNetEditor(QtWidgets.QWidget):
         keys = ['id', 'label', 'file', 'gx', 'gy', 'x', 'y', 'class']
         return dict(zip(keys, lst))
 
+    def on_export_thread(self):
+      thread = Thread(target=self.on_export)
+      thread.start()
+
+    def on_train_thread(self):
+      thread = Thread(target=self.on_train)
+      thread.start()
 
     def on_train(self):
         tf.config.run_functions_eagerly(True)
@@ -227,14 +235,17 @@ class NeuralNetEditor(QtWidgets.QWidget):
                 self.layers_list.addItem(layer_text)
 
     def on_export(self):
-        if not self.neuralnetFile:
-            raise ValueError('neuralnetFile is not set')
-        
+        folder=os.path.split(self.projectFolder)
+        exportFolder=os.path.join(folder[0], "exports")
+        filename=os.path.basename(self.neuralnetFile).replace(".json", "")
+        #print(folder, exportFolder, filename, sep="\n")
+        file=os.path.join(exportFolder, f"{filename}.h5")
         if self.model.optimizer is None:
-            raise RuntimeError('Model has not been compiled')
+          raise RuntimeError('Model has not been compiled')
         
         # Save the model to the file
-        self.model.save(self.neuralnetFile)
+        self.model.save(file)
+        print(f"model saved, file path: {file}")
 
     def on_open(self):
         if not self.neuralnetFile:
