@@ -247,6 +247,11 @@ class NeuralNetEditor(QtWidgets.QWidget):
         self.model.save(file)
         print(f"model saved, file path: {file}")
 
+    def get_Model(self):
+       if self.model.optimizer is None:
+          raise RuntimeError('Model has not been compiled')
+       return self.model
+    
     def on_open(self):
         if not self.neuralnetFile:
             raise ValueError('neuralnetFile is not set')
