@@ -4,6 +4,7 @@ import sys
 from PyQt5.QtWidgets import QMainWindow, QApplication
 from PyQt5 import QtWidgets, QtCore
 import sqlite3
+import errorWindow
 
 #from Panels.self.cam_panel import self.cam_panel
 from Panels.CameraSettingWidget import CameraWidget as CamPanel

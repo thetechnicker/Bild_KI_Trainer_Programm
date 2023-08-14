@@ -1,10 +1,13 @@
+import os
 from PyQt5 import QtWidgets, QtCore
 
 class TabEditor(QtWidgets.QLineEdit):
-    def __init__(self, index, parent=None):
+    def __init__(self, index, parent=None, widget=None):
         super().__init__(parent)
         self.index = index
         self.parent = parent
+        self.widget=widget
+
 
         # Set the initial text and geometry of the editor
         self.setText(parent.tabText(index))
@@ -24,7 +27,12 @@ class TabEditor(QtWidgets.QLineEdit):
         # Set the new text of the tab and hide the editor
         self.parent.setTabText(self.index, self.text())
         project_folder=self.parent.parent.project_folder
+        neuralnetFile=self.widget.neuralnetFile
         print(project_folder)
+        print(neuralnetFile)
+        for file in (project_folder, neuralnetFile):
+            if not os.path.exists(file):
+                raise FileNotFoundError(f"{file}: no such file or dictionary")
         self.hide()
 
     def keyPressEvent(self, event):
@@ -50,7 +58,8 @@ class MyTabWidget(QtWidgets.QTabWidget):
                 # Create and show the editor
                 if self.editor is not None:
                     self.editor.deleteLater()
-                self.editor = TabEditor(index, self)
+                widget=self.widget(index)
+                self.editor = TabEditor(index, self,widget)
                 self.editor.show()
                 self.editor.setFocus()
             elif self.editor:
