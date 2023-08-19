@@ -113,7 +113,7 @@ class MainWindow(QMainWindow):
         # Create the window menu and add actions
         window_menu = menubar.addMenu('Window')
         
-        self.NeuralNetEditor = NeuralNetTabView()
+        #self.NeuralNetEditor = NeuralNetTabView()
 
         central_widget = QtWidgets.QWidget()
         self.setCentralWidget(central_widget)
@@ -121,6 +121,7 @@ class MainWindow(QMainWindow):
         main_layout = QtWidgets.QVBoxLayout(central_widget)
         layout = QtWidgets.QHBoxLayout()
         self.treeview = TreeviewPanel()
+        self.NeuralNetEditor = NeuralNetTabView(self.treeview)
         self.treeview.set_callback(self.Treeview_click_event)
 
 

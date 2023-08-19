@@ -460,8 +460,8 @@ class TreeviewPanel(QtWidgets.QWidget):
                     main_path=os.path.join(head, "cnn" )
                     if not os.path.exists(main_path):
                         os.makedirs(main_path, exist_ok=True)
-                    pathname=item_name.replace(" ", "_")
-                    path=os.path.join(main_path,f"{pathname}.json")
+                    item_name=item_name.replace(" ", "_")
+                    path=os.path.join(main_path,f"{item_name}.json")
 
                     print(path)
                     main_code="{}"
@@ -683,6 +683,18 @@ class TreeviewPanel(QtWidgets.QWidget):
         conn.commit()
         conn.close()
 
+    def rename(self, item_type:str, oldName:str, newName:str):
+        """
+            Renames an item of the specified type from oldName to newName.
+
+            Args:
+                    item_type (str): The type of the item to rename.
+                    oldName (str): The current name of the item.
+                    newName (str): The new name for the item.
+        """
+        if item_type=="neuralNet":
+            item= self.get_item_by_name(oldName, self.get_item_by_name("Neuronale Netze"))
+            item.setText(newName)
 
     def clear(self):
         root=self.model.invisibleRootItem()
@@ -698,3 +710,4 @@ if __name__ == '__main__':
     tree_view_panel.show()
     app.exec_()
     tree_view_panel.saveDb()
+    
