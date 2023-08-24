@@ -61,9 +61,14 @@ class MyTabWidget(QtWidgets.QTabWidget):
         self.parent=parent
         self.editor = None
         self.treeview=treeview
+        self.setTabsClosable(True)
+        self.tabCloseRequested.connect(self.closeTab)
 
     def setCallback(self, callback):
         self.callback=callback
+
+    def closeTab(self, index):
+        self.removeTab(index)
 
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.RightButton:
@@ -78,11 +83,13 @@ class MyTabWidget(QtWidgets.QTabWidget):
                 self.editor.setFocus()
             elif self.editor:
                 self.editor.hide()
-        else:
-            if self.editor:
-                self.editor.hide()
+        elif event.button() == QtCore.Qt.MiddleButton:
+            index = self.tabBar().tabAt(event.pos())
+            if index != -1:
+                self.closeTab(index)
                     
         super().mousePressEvent(event)
+
 
 if __name__=="__main__":
     from neuralNetEditor import NeuralNetEditor

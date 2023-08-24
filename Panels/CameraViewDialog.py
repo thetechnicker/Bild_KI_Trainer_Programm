@@ -2,7 +2,7 @@ import sys
 from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtWidgets import QDialog, QLabel, QGridLayout, QLineEdit, QPushButton
 
-if True:
+if False:
     from .WebcamWidget import WebcamWidget
 else:
     from WebcamWidget import WebcamWidget
