@@ -88,6 +88,7 @@ class VideoBufferSurface(QAbstractVideoSurface):
 
     def stop(self):
         super().stop()
+    
 
     def present(self, frame):
         if frame.isValid():
@@ -96,13 +97,18 @@ class VideoBufferSurface(QAbstractVideoSurface):
             image = QtGui.QImage(cloneFrame.bits(), cloneFrame.width(), cloneFrame.height(), cloneFrame.bytesPerLine(),self.imageFormat)
             # Convert QImage to numpy array
             image_array = np.rot90(np.rot90(qimage2ndarray.rgb_view(image)))
-            
+
+            # Convert RGB numpy array to LAB color space
+            image_array = cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR)
+
             #np.savetxt('test.dump', image_array, fmt='%d', delimiter=',')
             #print(image_array)
-            cv2.imshow("Image", image_array)
+            #cv2.imshow("Image", image_array)
+
+
             if self.array is not None:
                 # Assign the image data to the numpy array
-                self.array[:,:] = image_array
+                self.array[:,:] = np.array(image_array)
             # Draw the frame on the screen
             self.widget.update()
             cloneFrame.unmap()
@@ -137,7 +143,7 @@ class WebcamWidget(QWidget):
         self.capture = QCameraImageCapture(self.camera)
         self.capture.setCaptureDestination(QCameraImageCapture.CaptureToFile)
         layout = QVBoxLayout(self)
-        layout.addWidget(self.viewfinder)
+        #layout.addWidget(self.viewfinder)
         self.camera.start()
 
 
