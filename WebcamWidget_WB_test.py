@@ -1,3 +1,4 @@
+import threading
 import cv2
 import numpy as np
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -49,10 +50,27 @@ class WebcamWindow(QWidget):
         height = int(self.heightInput.text())
         self.webcamWidget.setGrid(x=x, y=y, width=width, height=height)
 
+        
     def showNumpyArray(self):
-        array = np.zeros((720,1280,3), dtype=np.uint8)
+        # Create a new thread to display the array
+        thread = threading.Thread(target=self.displayArrayThread)
+        thread.start()
+    
+    def displayArrayThread(self):
+        # Create a NumPy array of zeros
+        array = np.zeros((720, 1280, 3), dtype=np.uint8)
+        
+        # Set the array for the webcam widget
         self.webcamWidget.setArray(array)
-        cv2.imshow("Numpy Array", array)
+        
+        # Display the array using OpenCV
+        while True:
+            cv2.imshow("Numpy Array", array)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+            
+        # Release resources when finished
+        cv2.destroyAllWindows()
 
 if __name__ == '__main__':
     app = QApplication([])

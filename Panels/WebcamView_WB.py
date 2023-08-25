@@ -94,35 +94,20 @@ class VideoBufferSurface(QAbstractVideoSurface):
         if frame.isValid():
             cloneFrame = QVideoFrame(frame)
             cloneFrame.map(QAbstractVideoBuffer.ReadOnly)
-            image = QtGui.QImage(cloneFrame.bits(), cloneFrame.width(), cloneFrame.height(), cloneFrame.bytesPerLine(),self.imageFormat)
-            # Convert QImage to numpy array
-            image_array = np.rot90(np.rot90(qimage2ndarray.rgb_view(image)))
-
-            # Convert RGB numpy array to LAB color space
+            image = QtGui.QImage(cloneFrame.bits(), cloneFrame.width(), cloneFrame.height(), cloneFrame.bytesPerLine(), self.imageFormat)
+            
+            image_array = qimage2ndarray.rgb_view(image)
             image_array = cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR)
-
-            #np.savetxt('test.dump', image_array, fmt='%d', delimiter=',')
-            #print(image_array)
-            #cv2.imshow("Image", image_array)
-
+            cv2.imshow("Image", image_array)
 
             if self.array is not None:
-                # Assign the image data to the numpy array
                 self.array[:,:] = np.array(image_array)
-            # Draw the frame on the screen
-            self.widget.update()
-            cloneFrame.unmap()
-        return True
 
-    def paint(self, painter):
-        if self.currentFrame.map(QAbstractVideoBuffer.ReadOnly):
-            image = QtGui.QImage(self.currentFrame.bits(),
-                                 self.currentFrame.width(),
-                                 self.currentFrame.height(),
-                                 self.currentFrame.bytesPerLine(),
-                                 self.imageFormat)
-            painter.drawImage(QtCore.QPoint(0, 0), image)
-            self.currentFrame.unmap()
+            cloneFrame.unmap()
+
+        result = super().present(frame)
+        return result
+
 
     def setArray(self, array):
         self.array = array
@@ -143,7 +128,8 @@ class WebcamWidget(QWidget):
         self.capture = QCameraImageCapture(self.camera)
         self.capture.setCaptureDestination(QCameraImageCapture.CaptureToFile)
         layout = QVBoxLayout(self)
-        #layout.addWidget(self.viewfinder)
+        #self.viewfinder.show()
+        layout.addWidget(self.viewfinder)
         self.camera.start()
 
 
@@ -188,6 +174,7 @@ class WebcamWidget(QWidget):
 
     def setArray(self, array):
         self.surface.setArray(array)
+    
 
 if __name__ == '__main__':
     app = QApplication([])
