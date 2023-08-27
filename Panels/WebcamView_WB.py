@@ -56,6 +56,33 @@ class Overlay(QWidget):
         except Exception as e:
             print(e)
 
+class VideoWidget(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setMinimumSize(400, 300)
+        self.image = QtGui.QImage()
+
+    def setImage(self, image):
+        self.image = image
+        self.update()
+
+    def paintEvent(self, event):
+        painter = QtGui.QPainter(self)
+        if not self.image.isNull():
+            # Berechne das Seitenverhältnis des Bildes
+            imageAspectRatio = self.image.width() / self.image.height()
+            # Berechne das Seitenverhältnis des Widgets
+            widgetAspectRatio = self.width() / self.height()
+            # Skaliere das Bild entsprechend dem kleineren Seitenverhältnis
+            if imageAspectRatio > widgetAspectRatio:
+                scaledImage = self.image.scaledToWidth(self.width())
+            else:
+                scaledImage = self.image.scaledToHeight(self.height())
+            # Zentriere das Bild im Widget
+            x = (self.width() - scaledImage.width()) / 2
+            y = (self.height() - scaledImage.height()) / 2
+            painter.drawImage(QtCore.QPoint(int(x), int(y)), scaledImage)
+
 
 class VideoBufferSurface(QAbstractVideoSurface):
     def __init__(self, widget=None):
@@ -95,18 +122,30 @@ class VideoBufferSurface(QAbstractVideoSurface):
             cloneFrame = QVideoFrame(frame)
             cloneFrame.map(QAbstractVideoBuffer.ReadOnly)
             image = QtGui.QImage(cloneFrame.bits(), cloneFrame.width(), cloneFrame.height(), cloneFrame.bytesPerLine(), self.imageFormat)
-            
-            image_array = qimage2ndarray.rgb_view(image)
-            image_array = cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR)
-            cv2.imshow("Image", image_array)
+            transform = QtGui.QTransform().rotate(180)
+            image = image.transformed(transform)
+            #image_array = qimage2ndarray.rgb_view(image)
+
+            width = image.width()
+            height = image.height()
+            ptr = image.bits()
+            ptr.setsize(height * width * 4)
+            image_array = np.frombuffer(ptr, np.uint8).reshape((height, width, 4))
+            #print(image_array)
+            #image_array = cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR)
+            #cv2.imshow("Image", image_array)
+
+            if self.widget:
+                self.widget.setImage(image)
 
             if self.array is not None:
                 self.array[:,:] = np.array(image_array)
 
             cloneFrame.unmap()
-
-        result = super().present(frame)
-        return result
+            return True
+        return False
+        #result = super().present(frame)
+        #return result
 
 
     def setArray(self, array):
@@ -116,10 +155,11 @@ class VideoBufferSurface(QAbstractVideoSurface):
 class WebcamWidget(QWidget):
     def __init__(self, CameraInfo=QCameraInfo.defaultCamera(), imgPath="d:/Images/image"):
         super().__init__()
+        self.resize(400, 300)
         self.path = imgPath
         self.count = 0
         self.camera = QCamera(CameraInfo)
-        self.viewfinder = QCameraViewfinder()
+        self.viewfinder = VideoWidget()
         self.overlay = Overlay(self.viewfinder)
         self.surface = VideoBufferSurface(self.viewfinder)
         #-----------------------------------------
