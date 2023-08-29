@@ -5,6 +5,7 @@ import numpy as np
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton
 from PyQt5.QtCore import QThread
+from tensorflow.keras.models import load_model
 
 if __name__=="__main__":
     from WebcamView_WB import WebcamWidget
@@ -34,11 +35,12 @@ class ImageWidget(QtWidgets.QWidget):
 
 
 class DisplayArrayThread(QThread):
-    def __init__(self, webcamWidget, image_widget):
+    def __init__(self, webcamWidget, image_widget, model):
         super().__init__()
         self.webcamWidget = webcamWidget
         self.image_widget = image_widget
         self.stopped = False
+        self.model=model
 
     def run(self):
         # Create a NumPy array of zeros
@@ -50,14 +52,24 @@ class DisplayArrayThread(QThread):
         # Continuously update the image in the image widget
         while not self.stopped:
             self.image_widget.setImage(array)
+            
+            if self.model:
+                predictions = self.model.predict(array)
+                print(predictions)
+
             self.msleep(100)  # Update the image every 0.1 seconds
 
     def stop(self):
         self.stopped = True
 
 class WebcamWindow(QWidget):
-    def __init__(self):
+    def __init__(self, model:str=None):
         super().__init__()
+        self.model=None
+
+        if model:
+            self.model=load_model(model)
+            
         self.webcamWidget = WebcamWidget()
         self.image_widget = ImageWidget(self)
         self.initUI()
@@ -106,7 +118,7 @@ class WebcamWindow(QWidget):
     def showNumpyArray(self):
         if self.showArrayButton.text() == "Show Numpy Array":
             # Create a new thread to display the array
-            self.displayArrayThread = DisplayArrayThread(self.webcamWidget, self.image_widget)
+            self.displayArrayThread = DisplayArrayThread(self.webcamWidget, self.image_widget, self.model)
             self.displayArrayThread.start()
             # Change the button text to "Stop"
             self.showArrayButton.setText("Stop")
@@ -116,8 +128,7 @@ class WebcamWindow(QWidget):
             # Change the button text back to "Show Numpy Array"
             self.showArrayButton.setText("Show Numpy Array")
 
-
-            
+                
 
 if __name__ == '__main__':
     app = QApplication([])
