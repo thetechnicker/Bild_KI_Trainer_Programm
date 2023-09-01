@@ -12,10 +12,15 @@ if __name__=="__main__":
 else:
     from Panels.WebcamView_WB import WebcamWidget
     
+from PyQt5 import QtCore, QtGui, QtWidgets
+import numpy as np
+
 class ImageWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setMinimumSize(400, 300)
         self.image = QtGui.QImage()
+        self.predictions = None
 
     def setImage(self, image: np.ndarray):
         # Konvertiere das NumPy-Array in ein QImage
@@ -29,9 +34,60 @@ class ImageWidget(QtWidgets.QWidget):
         self.image = qimage
         self.update()
 
+    def setPredictions(self, predictions: np.ndarray):
+        self.predictions = predictions
+        self.update()
+
     def paintEvent(self, event):
         painter = QtGui.QPainter(self)
-        painter.drawImage(QtCore.QPoint(0, 0), self.image)
+        # Calculate the scale factor to fit the image within the widget
+        try:
+            scale_factor = min(self.width() / self.image.width(), self.height() / self.image.height())
+        except ZeroDivisionError:
+            return
+        # Scale the image
+        scaled_image = scaled_image = self.image.scaled(int(self.image.width() * scale_factor), int(self.image.height() * scale_factor))
+        # Calculate the position of the top-left corner of the image
+        x =int( (self.width() - scaled_image.width()) / 2)
+        y =int( (self.height() - scaled_image.height()) / 2)
+        # Draw the scaled image
+        painter.drawImage(QtCore.QPoint(x, y), scaled_image)
+        # Draw the heatmap on top of the image
+        if self.predictions is not None:
+            heatmap = self.predictionsToHeatmap(self.predictions)
+            painter.drawImage(QtCore.QRectF(x, y, scaled_image.width(), scaled_image.height()), heatmap)
+
+    def predictionsToHeatmap(self, predictions: np.ndarray, threshold=0.5) -> QtGui.QImage:
+        # Create a QImage to store the heatmap
+        heatmap = QtGui.QImage(self.image.size(), QtGui.QImage.Format_ARGB32)
+        heatmap.fill(QtCore.Qt.transparent)
+        # Create a QPainter to draw on the heatmap
+        painter = QtGui.QPainter(heatmap)
+        # Get the dimensions of the grid
+        gy, gx, _ = predictions.shape
+        # Calculate the size of each grid cell
+        cell_width = self.image.width() / gx
+        cell_height = self.image.height() / gy
+        # Iterate over the grid cells
+        for i in range(gy):
+            for j in range(gx):
+                # Get the bounding box and objectness score for this cell
+                x, y, w, h, c = predictions[i][j]
+                # Check if the objectness score is above the threshold
+                if c > threshold:
+                    # Calculate the coordinates of the top-left corner of the bounding box
+                    x1 = int((j + x - w / 2) * cell_width)
+                    y1 = int((i + y - h / 2) * cell_height)
+                    # Calculate the coordinates of the bottom-right corner of the bounding box
+                    x2 = int((j + x + w / 2) * cell_width)
+                    y2 = int((i + y + h / 2) * cell_height)
+                    # Draw the bounding box on the heatmap
+                    painter.setPen(QtGui.QPen(QtCore.Qt.red, 2))
+                    painter.drawRect(x1, y1, x2 - x1, y2 - y1)
+                    # Draw the objectness score on the heatmap
+                    painter.setFont(QtGui.QFont("Arial", 14))
+                    painter.drawText(x1, y1 - 10, f"{c:.2f}")
+        return heatmap
 
 
 class DisplayArrayThread(QThread):
