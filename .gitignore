@@ -11,3 +11,4 @@ Panels/__pycache__/
 *.json
 /test
 *_test.*
+*.dump
