@@ -141,6 +141,8 @@ class NeuralNetEditor(QtWidgets.QWidget):
         print(x,y,sep="\n")
 
         # Get the selected pretrained model
+        print(x.shape[1:])
+        self.model.add(Input(shape=x.shape[1:]))
         pretrained_model_name = self.pretrained_model_combo.currentText()
         if pretrained_model_name == 'VGG16':
           base_model = VGG16(weights='imagenet', include_top=False, input_shape=x.shape[1:])
@@ -154,8 +156,6 @@ class NeuralNetEditor(QtWidgets.QWidget):
             layer.trainable = False
           # Create a new model by adding layers on top of the base model
           self.model.add(base_model)
-        else:
-            self.model.add(Input(input_shape=x.shape[1:]))
 
         if self.LoadedModel:
           self.model.add(self.LoadedModel)
@@ -194,10 +194,11 @@ class NeuralNetEditor(QtWidgets.QWidget):
               self.model.add(MaxPooling2D(pool_size))
 
         self.model.add(Flatten())
-        self.model.add(Dense(output_size, activation='sigmoid'))
+        self.model.add(Dense(output_size, activation='softmax'))
         self.model.add(Reshape(y_shape))
         # Compile the model
         self.model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'], run_eagerly=True)
+        self.model.summary()
         # Train the model
         self.model.fit(x, y, epochs=10)
 

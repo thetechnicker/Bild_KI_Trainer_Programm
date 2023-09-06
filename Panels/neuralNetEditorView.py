@@ -135,6 +135,11 @@ class NeuralNetTabView(QtWidgets.QWidget):
     def cnnExport(self, neuralnet):
         raise NotImplementedError()
 
+    def getCurrentNeuralnet(self):
+        current_index = self.tab_widget.currentIndex()
+        current_tab_name = self.tab_widget.tabText(current_index)
+        return current_tab_name
+
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
     window = NeuralNetTabView()

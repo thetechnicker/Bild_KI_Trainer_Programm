@@ -8,6 +8,11 @@ from PyQt5.QtCore import QThread
 from tensorflow.keras.models import load_model
 
 if __name__=="__main__":
+    from overlay import Overlay
+else:
+    from .overlay import Overlay
+
+if __name__=="__main__":
     from WebcamView_WB import WebcamWidget
 else:
     from Panels.WebcamView_WB import WebcamWidget
@@ -107,11 +112,16 @@ class DisplayArrayThread(QThread):
         
         # Continuously update the image in the image widget
         while not self.stopped:
-            self.image_widget.setImage(array)
-            
+            array_NoAlpha = array[..., :3]
+            image=np.array(array_NoAlpha[..., ::-1])
+            self.image_widget.setImage(image)
             if self.model:
-                predictions = self.model.predict(array)
-                print(predictions)
+                batch_array = np.expand_dims(image, axis=0)
+                predictions = self.model.predict(batch_array)
+                with open("pred.dump", "w") as f:
+                    f.write(np.array2string(predictions))
+                #print(predictions)
+                self.image_widget.setPredictions(predictions)
 
             self.msleep(100)  # Update the image every 0.1 seconds
 
@@ -125,6 +135,7 @@ class WebcamWindow(QWidget):
 
         if model:
             self.model=load_model(model)
+            self.model.summary()
             
         self.webcamWidget = WebcamWidget()
         self.image_widget = ImageWidget(self)

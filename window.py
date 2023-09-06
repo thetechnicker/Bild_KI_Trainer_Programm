@@ -125,7 +125,7 @@ class MainWindow(QMainWindow):
         self.treeview.set_callback(self.Treeview_click_event)
 
 
-        self.cam_panel = CamPanel([0, 0, 640, 480, 1, 100],folder=self.img_folder)
+        self.cam_panel = CamPanel(parent=self,folder=self.img_folder)
         self.cam_panel.setCallback(self.treeview.add_item)
         layout.setAlignment(self.cam_panel, QtCore.Qt.AlignTop)
 

@@ -1,8 +1,12 @@
+import os
+import threading
 from PyQt5 import QtWidgets, QtCore
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QLineEdit, QPushButton, QGridLayout
+from PyQt5.QtWidgets import QApplication, QDialog, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QLineEdit, QPushButton, QGridLayout
 from PyQt5.QtMultimedia import QCameraInfo
 
 import sys
+
+from Panels.neuralNetVideoTest import WebcamWindow
 
 if not (__name__=="__main__") :
     from .CameraViewDialog import CameraViewDialog
@@ -11,12 +15,15 @@ else:
 
 
 class CameraWidget(QWidget):
-    def __init__(self, *data, **data2):
+    def __init__(self, parent=None, **data2):
         super().__init__()
         #print(data)
         #print(data2)
         if "folder" in data2:
             self.folder=data2["folder"]
+
+        self.parent=parent
+
         self.setMinimumSize(250, 500);
         self.initUI()
 
@@ -99,6 +106,7 @@ class CameraWidget(QWidget):
         button_layout.addWidget(self.open_button)
         self.test_button = QPushButton('test cnn')
         button_layout.addWidget(self.test_button)
+        self.test_button.clicked.connect(self.testNeuralNet)
 
         layout.addLayout(button_layout, 5, 0)
         layout.setAlignment(button_layout, QtCore.Qt.AlignTop)
@@ -123,6 +131,37 @@ class CameraWidget(QWidget):
         else:
             self.container_widget.hide()
             self.Camera_container_widget.show()
+
+    def testNeuralNet(self):
+        var=self.parent.NeuralNetEditor.getCurrentNeuralnet()
+        folder=self.parent.export_folder
+        file=os.path.join(folder,f"{var}.h5")
+        print(file)
+
+
+    def testNeuralNet(self):
+        var=self.parent.NeuralNetEditor.getCurrentNeuralnet()
+        folder=self.parent.export_folder
+        self.file=os.path.join(folder,f"{var}.h5")
+        print(self.file)
+        # Create the dialog
+        dialog = QDialog()
+
+        # Create the layout
+        layout = QVBoxLayout(dialog)
+
+        # Add the WebcamWindow to the layout
+        webcamWindow = WebcamWindow(model=self.file)
+        layout.addWidget(webcamWindow)
+
+        # Create a cancel button
+        cancelButton = QPushButton("Cancel")
+        cancelButton.clicked.connect(dialog.reject)
+        layout.addWidget(cancelButton)
+
+        # Show the dialog
+        dialog.exec_()
+
 
 
 if __name__ == '__main__':
