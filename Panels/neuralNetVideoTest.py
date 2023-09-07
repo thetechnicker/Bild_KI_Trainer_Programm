@@ -5,6 +5,7 @@ import numpy as np
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton
 from PyQt5.QtCore import QThread
+import tensorflow as tf
 from tensorflow.keras.models import load_model
 
 if __name__=="__main__":
@@ -62,7 +63,7 @@ class ImageWidget(QtWidgets.QWidget):
             heatmap = self.predictionsToHeatmap(self.predictions)
             painter.drawImage(QtCore.QRectF(x, y, scaled_image.width(), scaled_image.height()), heatmap)
 
-    def predictionsToHeatmap(self, predictions: np.ndarray, threshold=0.5) -> QtGui.QImage:
+    def predictionsToHeatmap(self, predictions: np.ndarray, threshold=0.01) -> QtGui.QImage:
         # Create a QImage to store the heatmap
         heatmap = QtGui.QImage(self.image.size(), QtGui.QImage.Format_ARGB32)
         heatmap.fill(QtCore.Qt.transparent)
@@ -121,7 +122,9 @@ class DisplayArrayThread(QThread):
             self.image_widget.setImage(image)
             if self.model:
                 batch_array = np.expand_dims(image, axis=0)
-                predictions = self.model.predict(batch_array)
+                with tf.device('/GPU:0'):
+                    predictions = self.model.predict(batch_array)
+                    
                 print(predictions.shape)
                 batch1 =np.array(predictions[0])
                 print(batch1.shape)
