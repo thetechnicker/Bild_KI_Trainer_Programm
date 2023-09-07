@@ -77,9 +77,13 @@ class ImageWidget(QtWidgets.QWidget):
         for i in range(gy):
             for j in range(gx):
                 # Get the bounding box and objectness score for this cell
-                x, y, w, h, c = predictions[i][j]
+                x, y, w, h = predictions[i][j][:4]
+                c = list(predictions[i][j][4:])
+                #print(c)
+                max_value = np.max(c)
+                print(max_value)
                 # Check if the objectness score is above the threshold
-                if c > threshold:
+                if c[0] > threshold:
                     # Calculate the coordinates of the top-left corner of the bounding box
                     x1 = int((j + x - w / 2) * cell_width)
                     y1 = int((i + y - h / 2) * cell_height)
@@ -91,7 +95,7 @@ class ImageWidget(QtWidgets.QWidget):
                     painter.drawRect(x1, y1, x2 - x1, y2 - y1)
                     # Draw the objectness score on the heatmap
                     painter.setFont(QtGui.QFont("Arial", 14))
-                    painter.drawText(x1, y1 - 10, f"{c:.2f}")
+                    painter.drawText(x1, y1 - 10, f"{c}")
         return heatmap
 
 
@@ -118,10 +122,12 @@ class DisplayArrayThread(QThread):
             if self.model:
                 batch_array = np.expand_dims(image, axis=0)
                 predictions = self.model.predict(batch_array)
-                with open("pred.dump", "w") as f:
-                    f.write(np.array2string(predictions))
-                #print(predictions)
-                self.image_widget.setPredictions(predictions)
+                print(predictions.shape)
+                batch1 =np.array(predictions[0])
+                print(batch1.shape)
+                #with open("pred.dump", "w") as f:
+                #    f.write(np.array2string(batch1))
+                self.image_widget.setPredictions(np.array(predictions[0]))
 
             self.msleep(100)  # Update the image every 0.1 seconds
 
