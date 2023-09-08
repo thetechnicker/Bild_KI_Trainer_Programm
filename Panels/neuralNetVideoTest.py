@@ -1,12 +1,8 @@
-import threading
-import time
-import cv2
 import numpy as np
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton
 from PyQt5.QtCore import QThread
-import tensorflow as tf
-from tensorflow.keras.models import load_model
+import torch
 
 if __name__=="__main__":
     from overlay import Overlay
@@ -92,8 +88,8 @@ class ImageWidget(QtWidgets.QWidget):
                     x2 = int((j + x + w / 2) * cell_width)
                     y2 = int((i + y + h / 2) * cell_height)
                     # Draw the bounding box on the heatmap
-                    painter.setPen(QtGui.QPen(QtCore.Qt.red, 2))
-                    painter.drawRect(x1, y1, x2 - x1, y2 - y1)
+                    painter.setPen(QtGui.QPen(QtCore.Qt.red, 5))
+                    painter.drawRect(x1, y1, x2-x1, y2-y1)
                     # Draw the objectness score on the heatmap
                     painter.setFont(QtGui.QFont("Arial", 14))
                     painter.drawText(x1, y1 - 10, f"{c}")
@@ -106,7 +102,7 @@ class DisplayArrayThread(QThread):
         self.webcamWidget = webcamWidget
         self.image_widget = image_widget
         self.stopped = False
-        self.model=model
+        self.model = model
 
     def run(self):
         # Create a NumPy array of zeros
@@ -118,19 +114,23 @@ class DisplayArrayThread(QThread):
         # Continuously update the image in the image widget
         while not self.stopped:
             array_NoAlpha = array[..., :3]
-            image=np.array(array_NoAlpha[..., ::-1])
+            image = np.array(array_NoAlpha[..., ::-1])
             self.image_widget.setImage(image)
             if self.model:
                 batch_array = np.expand_dims(image, axis=0)
-                with tf.device('/GPU:0'):
-                    predictions = self.model.predict(batch_array)
+                batch_array = torch.tensor(batch_array).float()
+                device = torch.device('cuda:0')
+                self.model.to(device)
+                batch_array.to(device)
+                with torch.no_grad():
+                    predictions = self.model(batch_array)
                     
                 print(predictions.shape)
-                batch1 =np.array(predictions[0])
+                batch1 = predictions[0].numpy()
                 print(batch1.shape)
                 #with open("pred.dump", "w") as f:
                 #    f.write(np.array2string(batch1))
-                self.image_widget.setPredictions(np.array(predictions[0]))
+                self.image_widget.setPredictions(batch1)
 
             self.msleep(100)  # Update the image every 0.1 seconds
 
@@ -143,8 +143,7 @@ class WebcamWindow(QWidget):
         self.model=None
 
         if model:
-            self.model=load_model(model)
-            self.model.summary()
+            self.model=torch.load(model)
             
         self.webcamWidget = WebcamWidget()
         self.image_widget = ImageWidget(self)
@@ -154,6 +153,7 @@ class WebcamWindow(QWidget):
         image_layout=QHBoxLayout()
         image_layout.addWidget(self.webcamWidget)
         image_layout.addWidget(self.image_widget)
+        
         # Create layout
         layout = QVBoxLayout(self)
         layout.addLayout(image_layout)
@@ -172,39 +172,18 @@ class WebcamWindow(QWidget):
         overlayLayout.addWidget(self.widthInput)
         overlayLayout.addWidget(QLabel("height:"))
         overlayLayout.addWidget(self.heightInput)
+        
         layout.addLayout(overlayLayout)
 
         # Create button to update overlay
         updateButton = QPushButton("Update Overlay")
         updateButton.clicked.connect(self.updateOverlay)
+        
         layout.addWidget(updateButton)
 
         # Create button to show numpy array
         self.showArrayButton = QPushButton("Show Numpy Array")
-        self.showArrayButton.clicked.connect(self.showNumpyArray)
-        layout.addWidget(self.showArrayButton)
-
-    def updateOverlay(self):
-        x = int(self.xInput.text())
-        y = int(self.yInput.text())
-        width = int(self.widthInput.text())
-        height = int(self.heightInput.text())
-        self.webcamWidget.setGrid(x=x, y=y, width=width, height=height)
-
-    def showNumpyArray(self):
-        if self.showArrayButton.text() == "Show Numpy Array":
-            # Create a new thread to display the array
-            self.displayArrayThread = DisplayArrayThread(self.webcamWidget, self.image_widget, self.model)
-            self.displayArrayThread.start()
-            # Change the button text to "Stop"
-            self.showArrayButton.setText("Stop")
-        else:
-            # Stop the thread
-            self.displayArrayThread.stop()
-            # Change the button text back to "Show Numpy Array"
-            self.showArrayButton.setText("Show Numpy Array")
-
-                
+        
 
 if __name__ == '__main__':
     app = QApplication([])
