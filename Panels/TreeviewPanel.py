@@ -183,7 +183,7 @@ class TreeviewPanel(QtWidgets.QWidget):
                     name_item.appendRow([file_item,EditableStandardItem("non")])
                     #name_item.appendRow([id_item,EditableStandardItem("id")])
                     if "Yolo" in i:
-                        yolo_item = EditableStandardItem("Yolo")
+                        yolo_item = EditableStandardItem("yolo")
                         gx_item = EditableStandardItem("gx")
                         gy_item = EditableStandardItem("gy")
                         x_item = EditableStandardItem("x")
@@ -423,7 +423,7 @@ class TreeviewPanel(QtWidgets.QWidget):
                     parent = self.get_item_by_name("Images")
                     name_item = EditableStandardItem(item_name)
                     file_item = EditableStandardItem("File")
-                    yolo_item = EditableStandardItem("Yolo")
+                    yolo_item = EditableStandardItem("yolo")
                     gx_item = EditableStandardItem("gx")
                     gy_item = EditableStandardItem("gy")
                     x_item = EditableStandardItem("x")
@@ -559,48 +559,6 @@ class TreeviewPanel(QtWidgets.QWidget):
         # Add items to the tree view
         self.add_items(self.model.invisibleRootItem(), data)
 
-    # def saveDb(self, filename=None):
-    #     if not filename:
-    #         filename=self.file_path
-    #     # Get the structure of the tree view
-    #     d = self.get_structure()
-    #     print(d)
-    #     # Connect to the database
-    #     conn = sqlite3.connect(filename)
-    #     c = conn.cursor()
-
-    #     # Clear the tables
-    #     c.execute('DELETE FROM classes')
-    #     c.execute('DELETE FROM neural_nets')
-    #     c.execute('DELETE FROM images')
-    #     c.execute('DELETE FROM Yolo')
-
-    #     # Insert data into the tables
-    #     try:
-    #         for class_name in d['Classes']:
-    #             c.execute('INSERT INTO classes (name) VALUES (?)', (class_name,))
-    #     except Exception as e:
-    #         print(f"error: {e}")
-    #     try:
-    #         for net_name in d['Neuronale Netze']:
-    #             c.execute('INSERT INTO neural_nets (name) VALUES (?)', (net_name,))
-    #     except Exception as e:
-    #         print(f"error: {e}")
-    #     try:
-    #         for img_data in d['Images']:
-    #             yolo_data = img_data['Yolo']
-    #             values = (img_data['label'], img_data['File'], yolo_data['gx'], yolo_data['gy'], yolo_data['x'], yolo_data['y'], yolo_data['Class'])
-    #             c.execute('INSERT INTO images (label, file, gx, gy, x, y, class) VALUES (?, ?, ?, ?, ?, ?, ?)', values)
-    #     except Exception as e:
-    #         print(f"error: {e}")
-    #     try:
-    #         for key, value in d["Yolo"].items():
-    #             c.execute(f'INSERT INTO Yolo (label, value) VALUES ("{key}", "{value}")')
-    #     except Exception as e:
-    #         print(f"error: {e}")
-    #     # Commit changes and close the database connection
-    #     conn.commit()
-    #     conn.close()
 
     def saveDb(self, filename=None):
         if not filename:
