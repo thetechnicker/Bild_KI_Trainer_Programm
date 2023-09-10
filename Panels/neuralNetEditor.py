@@ -9,6 +9,7 @@ from torch import nn
 from torchvision import models
 from PIL import Image
 
+
 class NeuralNetEditor(QtWidgets.QWidget):
     def __init__(self, projectFolder=None, neuralnetFile=None):
         super().__init__()
