@@ -119,7 +119,9 @@ class NeuralNetEditor(QtWidgets.QWidget):
         
         x = torch.tensor(x).float()
         y = torch.tensor(y).float()
-
+        print(list(x.size()))
+        print(list(y.size()))
+        
         self.pretrained_model_name=self.pretrained_model_combo.currentText()
         base_model=None
         # Get the selected pretrained model
@@ -141,12 +143,19 @@ class NeuralNetEditor(QtWidgets.QWidget):
             param.requires_grad = False
 
         # Create a new model by adding layers on top of the base model
-        modules = [base_model]
+        if base_model is not None:
+          modules = [base_model]
+        else:
+          modules = []
          # Add the new layers
-        for layer_text in self.layers_list:
+        items = [self.layers_list.item(i).text() for i in range(self.layers_list.count())]
+        print(items)
+        for layer_text in items:
+            print(layer_text)
             if "(" in layer_text:
                 layer_type, layer_params = layer_text.split('(', 1)
                 layer_params = layer_params[:-1]
+                print(layer_type, layer_params)
             else:
                 layer_type=layer_text
             
@@ -171,11 +180,16 @@ class NeuralNetEditor(QtWidgets.QWidget):
                 pool_size = int(layer_params)
                 modules.append(nn.MaxPool2d(pool_size))
 
+        if len(modules) == 0:
+            raise ValueError("Model not defined")
+
         modules.append(nn.Flatten())
         
         modules.append(nn.Linear(output_size))
         
         modules.append(nn.Softmax(dim=-1))
+
+        
         
         self.model=nn.Sequential(*modules)
 
