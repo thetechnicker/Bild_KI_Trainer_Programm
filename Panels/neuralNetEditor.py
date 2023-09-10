@@ -10,6 +10,7 @@ from threading import Thread
 import numpy as np
 from PIL import Image
 
+
 class NeuralNetEditor(QtWidgets.QWidget):
     def __init__(self, projectFolder=None, neuralnetFile=None):
         super().__init__()
