@@ -3,14 +3,16 @@ import os
 import sqlite3
 from threading import Thread
 from PyQt5 import QtWidgets, QtGui
+import numpy as np
 import torch
 from torch import nn
 from torchvision import models
+from PIL import Image
 
 class NeuralNetEditor(QtWidgets.QWidget):
     def __init__(self, projectFolder=None, neuralnetFile=None):
         super().__init__()
-
+        self.model=None
         # Set the data
         self.data = {}
 
@@ -74,6 +76,7 @@ class NeuralNetEditor(QtWidgets.QWidget):
                   self.layers_list.addItem(f'MaxPool2d({pool_size})')
           else:
               self.layers_list.addItem(layer_type)
+
     def on_train(self):
         if not self.projectFolder:
             raise ValueError('projectFolder is not set')
@@ -101,6 +104,7 @@ class NeuralNetEditor(QtWidgets.QWidget):
         y = []
         for img in image_data:
             image = self.list_to_dict(img)
+            print(image)
             # Load image data into a numpy array
             l_image = Image.open(f"{image['file']}.jpg")
             # Convert the image to a NumPy array
@@ -115,7 +119,11 @@ class NeuralNetEditor(QtWidgets.QWidget):
         
         x = torch.tensor(x).float()
         y = torch.tensor(y).float()
+        print(list(x.size()))
+        print(list(y.size()))
         
+        self.pretrained_model_name=self.pretrained_model_combo.currentText()
+        base_model=None
         # Get the selected pretrained model
         if self.pretrained_model_name == 'VGG16':
             base_model = models.vgg16(pretrained=True)
@@ -130,16 +138,24 @@ class NeuralNetEditor(QtWidgets.QWidget):
             base_model.fc = nn.Identity()
 
         # Freeze the layers of the base model
-        for param in base_model.parameters():
+        if base_model:
+          for param in base_model.parameters():
             param.requires_grad = False
 
         # Create a new model by adding layers on top of the base model
-        modules = [base_model]
+        if base_model is not None:
+          modules = [base_model]
+        else:
+          modules = []
          # Add the new layers
-        for layer_text in self.layers_list:
+        items = [self.layers_list.item(i).text() for i in range(self.layers_list.count())]
+        print(items)
+        for layer_text in items:
+            print(layer_text)
             if "(" in layer_text:
                 layer_type, layer_params = layer_text.split('(', 1)
                 layer_params = layer_params[:-1]
+                print(layer_type, layer_params)
             else:
                 layer_type=layer_text
             
@@ -164,11 +180,16 @@ class NeuralNetEditor(QtWidgets.QWidget):
                 pool_size = int(layer_params)
                 modules.append(nn.MaxPool2d(pool_size))
 
+        if len(modules) == 0:
+            raise ValueError("Model not defined")
+
         modules.append(nn.Flatten())
         
         modules.append(nn.Linear(output_size))
         
         modules.append(nn.Softmax(dim=-1))
+
+        
         
         self.model=nn.Sequential(*modules)
 
@@ -178,14 +199,16 @@ class NeuralNetEditor(QtWidgets.QWidget):
 
         # Train the model
         for epoch in range(10):
-            optimizer.zero_grad()
-            outputs = self.model(x)
-            loss = criterion(outputs, y)
-            loss.backward()
-            optimizer.step()
+          optimizer.zero_grad()
+          outputs = self.model(x)
+          loss = criterion(outputs, y)
+          print(f'Epoch {epoch+1}, Loss: {loss.item()}')
+          loss.backward()
+          optimizer.step()
+
 
     def list_to_dict(self,img):
-      return {'file':img[0],'x':img[1],'y':img[2],'gx':img[3],'gy':img[4],'class':img[5]}
+      return {'id':img[0], 'label':img[1],'file':img[2],'x':img[3],'y':img[4],'gx':img[5],'gy':img[6],'class':img[7]}
 
     def on_export_thread(self):
       thread = Thread(target=self.on_export)
