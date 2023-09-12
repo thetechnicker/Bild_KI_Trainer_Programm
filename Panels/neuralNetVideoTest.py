@@ -183,6 +183,30 @@ class WebcamWindow(QWidget):
 
         # Create button to show numpy array
         self.showArrayButton = QPushButton("Show Numpy Array")
+        self.showArrayButton.clicked.connect(self.showNumpyArray)
+        layout.addWidget(self.showArrayButton)
+
+
+
+    def updateOverlay(self):
+        x = int(self.xInput.text())
+        y = int(self.yInput.text())
+        width = int(self.widthInput.text())
+        height = int(self.heightInput.text())
+        self.webcamWidget.setGrid(x=x, y=y, width=width, height=height)
+
+    def showNumpyArray(self):
+        if self.showArrayButton.text() == "Show Numpy Array":
+            # Create a new thread to display the array
+            self.displayArrayThread = DisplayArrayThread(self.webcamWidget, self.image_widget, self.model)
+            self.displayArrayThread.start()
+            # Change the button text to "Stop"
+            self.showArrayButton.setText("Stop")
+        else:
+            # Stop the thread
+            self.displayArrayThread.stop()
+            # Change the button text back to "Show Numpy Array"
+            self.showArrayButton.setText("Show Numpy Array")
         
 
 if __name__ == '__main__':
