@@ -150,6 +150,13 @@ class NeuralNetEditor(QtWidgets.QWidget):
          # Add the new layers
         items = [self.layers_list.item(i).text() for i in range(self.layers_list.count())]
         print(items)
+        
+        input = torch.randn(1, 3, 720, 1280)
+
+        # Initialize in_channels for Conv2d and Linear layers
+        in_channels_conv = input.shape[1]
+        in_channels_linear = None
+
         for layer_text in items:
             print(layer_text)
             if "(" in layer_text:
@@ -158,27 +165,36 @@ class NeuralNetEditor(QtWidgets.QWidget):
                 print(layer_type, layer_params)
             else:
                 layer_type=layer_text
-            
+
             if layer_type == 'Linear':
                 units = int(layer_params)
-                modules.append(nn.Linear(units))
+                modules.append(nn.Linear(in_features=in_channels_linear, out_features=units))
                 modules.append(nn.ReLU())
-                
+                in_channels_linear = units
+
             elif layer_type == 'Dropout':
                 rate = float(layer_params)
                 modules.append(nn.Dropout(rate))
-                
+
             elif layer_type == 'Flatten':
                 modules.append(nn.Flatten())
-                
+                # Update in_channels for Linear layers after flattening
+                in_channels_linear = input.numel()
+
             elif layer_type == 'Conv2d':
                 filters, kernel_size = map(int, layer_params.split(','))
-                modules.append(nn.Conv2d(filters, kernel_size))
+                modules.append(nn.Conv2d(in_channels=in_channels_conv, out_channels=filters, kernel_size=kernel_size))
                 modules.append(nn.ReLU())
-                
+                # Update in_channels for next Conv2d layers
+                in_channels_conv = filters
+
             elif layer_type == 'MaxPool2d':
                 pool_size = int(layer_params)
                 modules.append(nn.MaxPool2d(pool_size))
+
+            # Pass the input through the current module
+            for module in modules:
+                input = module(input)
 
         if len(modules) == 0:
             raise ValueError("Model not defined")
