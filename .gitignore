@@ -12,3 +12,5 @@ Panels/__pycache__/
 /test
 *_test.*
 *.dump
+/build
+*.spec
