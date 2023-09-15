@@ -9,7 +9,7 @@ from PyQt5.QtMultimedia import QCamera, QCameraInfo, QAbstractVideoBuffer, QCame
 from PyQt5.QtMultimediaWidgets import QCameraViewfinder
 from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget
 import sys
-import qimage2ndarray
+# import qimage2ndarray
 
 try:
     from .overlay import Overlay
