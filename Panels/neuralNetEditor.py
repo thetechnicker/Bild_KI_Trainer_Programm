@@ -2,7 +2,7 @@ import json
 import os
 import sqlite3
 from PyQt5 import QtWidgets, QtGui
-import tensorflow as tf
+import tensorflow as tf, keras
 from tensorflow.keras.applications import VGG16, ResNet50, InceptionV3
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D, Reshape, Input

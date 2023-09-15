@@ -448,7 +448,7 @@ class MainWindow(QMainWindow):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     if not os.path.exists("./settings.json"):
-        with open("./settings.json") as f:
+        with open("./settings.json", "x") as f:
             json.dump({}, f)
     with open("./settings.json") as f:
         data=json.load(f)
