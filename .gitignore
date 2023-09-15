@@ -14,3 +14,4 @@ Panels/__pycache__/
 *.dump
 /build
 *.spec
+hook-tensorflow.py
