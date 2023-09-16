@@ -6,9 +6,10 @@ from PyQt5.QtMultimedia import QCamera, QCameraInfo, QCameraImageCapture, QImage
 from PyQt5.QtMultimediaWidgets import QCameraViewfinder
 from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget
 import sys
-
-from Panels.overlay import Overlay
-
+try:
+    from Panels.overlay import Overlay
+except:
+    from overlay import Overlay
 
 
 class WebcamWidget(QWidget):

@@ -1,14 +1,15 @@
 import sys
 from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtWidgets import QDialog, QLabel, QGridLayout, QLineEdit, QPushButton
+from PyQt5.QtMultimedia import QCamera, QCameraInfo
 
-if True:
+try:
     from .WebcamWidget import WebcamWidget
-else:
+except:
     from WebcamWidget import WebcamWidget
 
 class CameraViewDialog(QDialog):
-    def __init__(self, parent=None, GridHeight=None, GridWidth=None, folder=None):
+    def __init__(self, parent=None, GridHeight=None, GridWidth=None, folder=None, camera:QCameraInfo=None):
         super().__init__(parent)
         if folder:
             self.folder=folder
@@ -17,7 +18,7 @@ class CameraViewDialog(QDialog):
         self.setWindowTitle("PyQt Webcam Viewer")
         gridLayout = QGridLayout()
 
-        self.cam=WebcamWidget()
+        self.cam=WebcamWidget(CameraInfo=camera)
 
         # Add input fields for x and y coordinates of rectangle
         self.xInput = QLineEdit(self)
@@ -94,8 +95,11 @@ class CameraViewDialog(QDialog):
         self.saveCallback=callback
 
     def saveIMG(self):
-        file=self.cam.capture_image(self.folder)
-        self.saveCallback(file=file)
+        try:
+            file=self.cam.capture_image(self.folder)
+            self.saveCallback(file=file)
+        except:
+            raise FileNotFoundError(f"No such file or directory: {self.folder}")
 
     def resizeEvent(self, event):
         super().resizeEvent(event)

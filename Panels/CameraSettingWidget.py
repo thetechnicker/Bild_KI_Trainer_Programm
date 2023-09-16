@@ -1,16 +1,19 @@
 import os
 import threading
 from PyQt5 import QtWidgets, QtCore
+from PyQt5.QtCore  import QTimer
 from PyQt5.QtWidgets import QApplication, QDialog, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QLineEdit, QPushButton, QGridLayout
 from PyQt5.QtMultimedia import QCameraInfo
 
 import sys
+try:
+    from Panels.neuralNetVideoTest import WebcamWindow
+except:
+    from neuralNetVideoTest import WebcamWidget
 
-from Panels.neuralNetVideoTest import WebcamWindow
-
-if not (__name__=="__main__") :
-    from .CameraViewDialog import CameraViewDialog
-else:
+try:
+    from Panels.CameraViewDialog import CameraViewDialog
+except:
     from CameraViewDialog import CameraViewDialog
 
 
@@ -19,6 +22,7 @@ class CameraWidget(QWidget):
         super().__init__()
         #print(data)
         #print(data2)
+        self.folder=None
         if "folder" in data2:
             self.folder=data2["folder"]
 
@@ -26,6 +30,7 @@ class CameraWidget(QWidget):
 
         self.setMinimumSize(250, 500);
         self.initUI()
+
 
     def SetFolder(self, folder):
         self.folder=folder
@@ -83,14 +88,15 @@ class CameraWidget(QWidget):
 
         layout.addWidget(self.container_widget, 2, 0)
         
-        camera_list = []
+        self.camera_list = {}
         cameras = QCameraInfo.availableCameras()
         
         for i in cameras:
-            camera_list.append(f"{i.description()}")
+            self.camera_list[f"{i.description()}"] = i
+        #print(self.camera_list)
         
         self.CameraSelect = QComboBox()
-        self.CameraSelect.addItems(camera_list)
+        self.CameraSelect.addItems(list(self.camera_list.keys()))
         self.CameraLayout = QHBoxLayout()
         self.CameraLayout.addWidget(self.CameraSelect)
         
@@ -115,11 +121,16 @@ class CameraWidget(QWidget):
         self.setLayout(layout)
         self.Callback=None
 
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.listupdater)
+        self.timer.start(1000)  # Aktualisiert die Liste jede Sekunde
+
     def setCallback(self, Callback):
         self.Callback=Callback
 
     def openCam(self):
-        dialog=CameraViewDialog(parent=self, folder=self.folder)
+        cam=self.camera_list[self.CameraSelect.currentText()]
+        dialog=CameraViewDialog(parent=self, folder=self.folder,camera=cam)
         dialog.setSaveCallback(self.Callback)
         dialog.show()
 
@@ -132,11 +143,11 @@ class CameraWidget(QWidget):
             self.container_widget.hide()
             self.Camera_container_widget.show()
 
-    def testNeuralNet(self):
-        var=self.parent.NeuralNetEditor.getCurrentNeuralnet()
-        folder=self.parent.export_folder
-        file=os.path.join(folder,f"{var}.h5")
-        print(file)
+    # def testNeuralNet(self):
+    #     var=self.parent.NeuralNetEditor.getCurrentNeuralnet()
+    #     folder=self.parent.export_folder
+    #     file=os.path.join(folder,f"{var}.h5")
+    #     print(file)
 
 
     def testNeuralNet(self):
@@ -151,7 +162,7 @@ class CameraWidget(QWidget):
         layout = QVBoxLayout(dialog)
 
         # Add the WebcamWindow to the layout
-        webcamWindow = WebcamWindow(model=self.file)
+        webcamWindow = WebcamWindow(model=self.file, camera=self.camera_list[self.CameraSelect.currentText()])
         layout.addWidget(webcamWindow)
 
         # Create a cancel button
@@ -161,6 +172,20 @@ class CameraWidget(QWidget):
 
         # Show the dialog
         dialog.exec_()
+
+    def listupdater(self):
+        new_list={}
+        cameras = QCameraInfo.availableCameras()
+        
+        
+        for i in cameras:
+            new_list[f"{i.description()}"] = i
+        
+        if not list(new_list.keys()) == list(self.camera_list.keys()):
+            self.camera_list=dict(new_list)
+            self.CameraSelect.clear()  # Alle vorhandenen Elemente entfernen
+            self.CameraSelect.addItems(list(self.camera_list.keys()))  # Neue Elemente hinzufügen
+        
 
 
 

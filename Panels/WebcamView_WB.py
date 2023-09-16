@@ -91,16 +91,16 @@ class VideoBufferSurface(QAbstractVideoSurface):
             height = image.height()
             ptr = image.bits()
             ptr.setsize(height * width * 4)
-            image_array = np.frombuffer(ptr, np.uint8).reshape((height, width, 4))
+            self.image_array = np.array(np.frombuffer(ptr, np.uint8).reshape((height, width, 4)))
             #print(image_array)
             #image_array = cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR)
-            #cv2.imshow("Image", image_array)
+            #cv2.imshow("Image", self.image_array)
 
             if self.widget:
                 self.widget.setImage(image)
 
             if self.array is not None:
-                self.array[:,:] = np.array(image_array)
+                self.array[:,:] = np.array(self.image_array)
 
             cloneFrame.unmap()
             return True
@@ -112,6 +112,8 @@ class VideoBufferSurface(QAbstractVideoSurface):
     def setArray(self, array):
         self.array = array
 
+    def getImageSize(self):
+        return self.image_array.shape
 
 class WebcamWidget(QWidget):
     def __init__(self, CameraInfo=QCameraInfo.defaultCamera(), imgPath="d:/Images/image"):
@@ -176,6 +178,8 @@ class WebcamWidget(QWidget):
     def setArray(self, array):
         self.surface.setArray(array)
     
+    def getImageSize(self):
+        return self.surface.getImageSize()
 
 if __name__ == '__main__':
     app = QApplication([])
