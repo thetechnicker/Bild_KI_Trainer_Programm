@@ -16,3 +16,4 @@ Panels/__pycache__/
 *.spec
 hook-tensorflow.py
 /dist
+*.dat

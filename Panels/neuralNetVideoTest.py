@@ -108,9 +108,10 @@ class DisplayArrayThread(QThread):
         self.image_widget = image_widget
         self.stopped = False
         self.model=model
+        self.input_slice = slice(None)
 
-    def set_input_slice(self, input_slice):
-        self.input_slice = input_slice
+    def set_input_slice(self, x, y, w, h):
+        self.input_slice = (slice(y, y + h), slice(x, x + w))
 
     def run(self):
         size=self.webcamWidget.getImageSize()
@@ -135,14 +136,14 @@ class DisplayArrayThread(QThread):
             if self.model:
                 input_array = image[self.input_slice]
                 batch_array = np.expand_dims(input_array, axis=0)
-                try:
-                    with tf.device('/GPU:0'):
-                        predictions = self.model.predict(batch_array)
-                except:
+                with tf.device('/GPU:0'):
                     try:
                         predictions = self.model.predict(batch_array)
                     except Exception as e:
-                        print(f"err: {e}")
+                        with open("log.dat", "w") as f:
+                            print(e, file=f)
+                            print(e)
+                            continue
                 print(predictions.shape)
                 batch1 =np.array(predictions[0])
                 print(batch1.shape)
@@ -168,6 +169,7 @@ class WebcamWindow(QWidget):
             
         self.webcamWidget = WebcamWidget(CameraInfo=camera)
         self.image_widget = ImageWidget(self)
+        self.displayArrayThread=None
         self.initUI()
 
     def initUI(self):
@@ -214,6 +216,9 @@ class WebcamWindow(QWidget):
         width = int(self.widthInput.text())
         height = int(self.heightInput.text())
         self.webcamWidget.setGrid(x=x, y=y, width=width, height=height)
+        if self.displayArrayThread:
+            self.displayArrayThread.set_input_slice(x, y, width, height)
+
 
     def showNumpyArray(self):
         if self.showArrayButton.text() == "Show Numpy Array":
@@ -225,6 +230,7 @@ class WebcamWindow(QWidget):
         else:
             # Stop the thread
             self.displayArrayThread.stop()
+            self.displayArrayThread=None
             # Change the button text back to "Show Numpy Array"
             self.showArrayButton.setText("Show Numpy Array")
 
