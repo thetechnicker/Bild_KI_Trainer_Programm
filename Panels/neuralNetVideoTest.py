@@ -3,7 +3,7 @@ import time
 import cv2
 import numpy as np
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QDialog
 from PyQt5.QtMultimedia import QCamera, QCameraInfo
 from PyQt5.QtCore import QThread
 import tensorflow as tf
@@ -156,7 +156,7 @@ class DisplayArrayThread(QThread):
     def stop(self):
         self.stopped = True
 
-class WebcamWindow(QWidget):
+class WebcamWindow(QDialog):
     def __init__(self, model:str=None, camera=QCameraInfo.defaultCamera()):
         super().__init__()
         self.model=None
@@ -164,9 +164,10 @@ class WebcamWindow(QWidget):
         if model:
             self.model=load_model(model)
             self.model.summary()
-            self.inputShape=self.model.input_shape
+            self.inputShape=np.array(self.model.input_shape)
             print(self.inputShape)
-            
+        else:
+            self.inputShape=None
         self.webcamWidget = WebcamWidget(CameraInfo=camera)
         self.image_widget = ImageWidget(self)
         self.displayArrayThread=None
@@ -187,9 +188,10 @@ class WebcamWindow(QWidget):
         self.yInput = QLineEdit()
         self.yInput.setText("0")
         self.widthInput = QLineEdit()
-        self.widthInput.setText(f"{self.inputShape[1]}")
         self.heightInput = QLineEdit()
-        self.heightInput.setText(f"{self.inputShape[2]}")
+        if not self.inputShape is None:
+            self.widthInput.setText(f"{self.inputShape[1]}")
+            self.heightInput.setText(f"{self.inputShape[2]}")
         overlayLayout.addWidget(QLabel("x:"))
         overlayLayout.addWidget(self.xInput)
         overlayLayout.addWidget(QLabel("y:"))
@@ -209,6 +211,11 @@ class WebcamWindow(QWidget):
         self.showArrayButton = QPushButton("Show Numpy Array")
         self.showArrayButton.clicked.connect(self.showNumpyArray)
         layout.addWidget(self.showArrayButton)
+        
+        # Create a cancel button
+        cancelButton = QPushButton("Cancel")
+        cancelButton.clicked.connect(self.close)
+        layout.addWidget(cancelButton)
 
     def updateOverlay(self):
         x = int(self.xInput.text())
@@ -234,7 +241,11 @@ class WebcamWindow(QWidget):
             # Change the button text back to "Show Numpy Array"
             self.showArrayButton.setText("Show Numpy Array")
 
-                
+    def closeEvent(self, event):
+        if self.displayArrayThread:
+            self.displayArrayThread.stop()
+        self.webcamWidget.stop()
+        event.accept() 
 
 if __name__ == '__main__':
     app = QApplication([])

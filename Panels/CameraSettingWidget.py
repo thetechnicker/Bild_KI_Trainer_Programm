@@ -9,7 +9,7 @@ import sys
 try:
     from Panels.neuralNetVideoTest import WebcamWindow
 except:
-    from neuralNetVideoTest import WebcamWidget
+    from neuralNetVideoTest import WebcamWindow
 
 try:
     from Panels.CameraViewDialog import CameraViewDialog
@@ -151,27 +151,19 @@ class CameraWidget(QWidget):
 
 
     def testNeuralNet(self):
-        var=self.parent.NeuralNetEditor.getCurrentNeuralnet()
-        folder=self.parent.export_folder
-        self.file=os.path.join(folder,f"{var}.h5")
-        print(self.file)
-        # Create the dialog
-        dialog = QDialog()
-
-        # Create the layout
-        layout = QVBoxLayout(dialog)
-
+        try:
+            var=self.parent.NeuralNetEditor.getCurrentNeuralnet()
+            folder=self.parent.export_folder
+            self.file=os.path.join(folder,f"{var}.h5")
+            print(self.file)
+        except:
+            self.file=None
         # Add the WebcamWindow to the layout
         webcamWindow = WebcamWindow(model=self.file, camera=self.camera_list[self.CameraSelect.currentText()])
-        layout.addWidget(webcamWindow)
-
-        # Create a cancel button
-        cancelButton = QPushButton("Cancel")
-        cancelButton.clicked.connect(dialog.reject)
-        layout.addWidget(cancelButton)
-
-        # Show the dialog
-        dialog.exec_()
+        try:
+            webcamWindow.exec_()
+        except:
+            print("error")
 
     def listupdater(self):
         new_list={}
