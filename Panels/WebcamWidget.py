@@ -11,6 +11,10 @@ try:
 except:
     from overlay import Overlay
 
+try:
+    from Panels.viewfinderWithOverlay import CustomViewfinder
+except:
+    from viewfinderWithOverlay import CustomViewfinder
 
 class WebcamWidget(QWidget):
     def __init__(self, CameraInfo=QCameraInfo.defaultCamera(), imgPath="d:/Images/image"):
@@ -22,12 +26,13 @@ class WebcamWidget(QWidget):
         self.offsetY=0
         self.camera = QCamera(CameraInfo)
         self.count=0
-        self.viewfinder = QCameraViewfinder()
+        
+        self.viewfinder = CustomViewfinder()
         size=self.viewfinder.size()
         self.width = size.width()-1
         self.height = size.height()-1
 
-        self.overlay = Overlay(self.viewfinder)
+        #self.overlay = Overlay(self.viewfinder)
         self.camera.setViewfinder(self.viewfinder)
 
         self.capture = QCameraImageCapture(self.camera)
@@ -42,14 +47,14 @@ class WebcamWidget(QWidget):
         self.offsetX=x
         self.offsetY=y
         x_new, y_new, _, _ =self.getDimension()
-        self.overlay.update_grid(x=x_new, y=y_new, width=width,height=height,horizontal_lines=horizontal_lines, vertical_lines=vertical_lines)
+        self.viewfinder.update_grid(x=x_new, y=y_new, width=width,height=height,horizontal_lines=horizontal_lines, vertical_lines=vertical_lines)
     
     def resizeEvent(self, event):
         super().resizeEvent(event)
         x, y, w, h =self.getDimension() 
         #print(x,y, h, w, width, height, scale)
-        self.overlay.update_grid(x=int(x),y=int(y),width=int(w),height=int(h))
-        self.overlay.resize(self.viewfinder.size())
+        self.viewfinder.update_grid(x=int(x),y=int(y),width=int(w),height=int(h))
+        #self.viewfinder.resize(self.viewfinder.size())
     
     def getDimension(self):
         size=self.viewfinder.size()
