@@ -112,18 +112,30 @@ class CameraViewDialog(QDialog):
     def updateGrid(self,text):
         try:
             w = int(self.wInput.text())
-            h = int(self.hInput.text())
         except:
             w = None
+        try:
+            h = int(self.hInput.text())
+        except:
             h = None
         try:
             x = int(self.xInput.text())
+        except:
+            x = None
+        try:
             y = int(self.yInput.text())
+        except:
+            y = None
+        try:
             gx = int(self.gxInput.text())
+        except:
+            gx = None
+        try:
             gy = int(self.gyInput.text())
-            self.cam.setGrid(x=x,y=y,width=w,height=h,horizontal_lines=gx,vertical_lines=gy)
-        except Exception as e:
-            print(e)
+        except:
+            gy = None
+        
+        self.cam.setGrid(x=x,y=y,width=w,height=h,horizontal_lines=gx,vertical_lines=gy)
 
 
 if __name__ == "__main__":
