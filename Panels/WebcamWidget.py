@@ -51,6 +51,7 @@ class WebcamWidget(QWidget):
     
     def resizeEvent(self, event):
         super().resizeEvent(event)
+        print("main size: ",self.size())
         x, y, w, h =self.getDimension() 
         #print(x,y, h, w, width, height, scale)
         self.viewfinder.update_grid(x=int(x),y=int(y),width=int(w),height=int(h))
