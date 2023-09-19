@@ -9,7 +9,7 @@ a = Analysis(
     ['window.py'],
     pathex=[],
     binaries=[],
-    datas=[('./Panels', './Panels'), ('C:\\Users\\lucas\\anaconda3\\envs\\KI_Trainer\\Lib\\site-packages\\google', '.')],
+    datas=[('./Panels', './Panels')],
     hiddenimports=['tensorflow'],
     hookspath=[],
     hooksconfig={},
