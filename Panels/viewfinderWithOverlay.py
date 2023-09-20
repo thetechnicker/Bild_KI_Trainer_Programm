@@ -1,12 +1,13 @@
-from PyQt5 import QtGui
+from PyQt5.QtMultimedia import QAbstractVideoSurface, QVideoFrame, QAbstractVideoBuffer
+from PyQt5.QtGui import QImage, QPainter, QColor, QPen
 from PyQt5.QtCore import QRect
-from PyQt5.QtGui import QPainter, QImage, QColor, QPen
-from PyQt5.QtMultimedia import QAbstractVideoBuffer, QAbstractVideoSurface, QVideoFrame
+from PyQt5 import QtGui
 from PyQt5.QtWidgets import QWidget
 
 class CustomVideoSurface(QAbstractVideoSurface):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.parent = parent
         if parent is not None:
             viewfinder_size = parent.size()
             viewfinder_width = viewfinder_size.width()
@@ -36,17 +37,18 @@ class CustomVideoSurface(QAbstractVideoSurface):
             self.horizontal_lines = horizontal_lines
         if vertical_lines is not None:
             self.vertical_lines = vertical_lines
-        self.update()
 
-    def isFormatSupported(self, format):
-        imageFormat = QVideoFrame.imageFormatFromPixelFormat(format.pixelFormat())
-        size = format.frameSize()
-        return imageFormat != QtGui.QImage.Format_Invalid and not size.isEmpty() and format.handleType() == QAbstractVideoBuffer.NoHandle
+    def supportedPixelFormats(self, handleType):
+        return [QVideoFrame.Format_RGB32,
+                QVideoFrame.Format_ARGB32,
+                QVideoFrame.Format_ARGB32_Premultiplied,
+                QVideoFrame.Format_RGB565,
+                QVideoFrame.Format_RGB555]
 
     def start(self, format):
         imageFormat = QVideoFrame.imageFormatFromPixelFormat(format.pixelFormat())
         size = format.frameSize()
-        if imageFormat != QtGui.QImage.Format_Invalid and not size.isEmpty():
+        if imageFormat != QImage.Format_Invalid and not size.isEmpty():
             self.imageFormat = imageFormat
             super().start(format)
             return True
@@ -60,13 +62,15 @@ class CustomVideoSurface(QAbstractVideoSurface):
         if frame.isValid():
             cloneFrame = QVideoFrame(frame)
             cloneFrame.map(QAbstractVideoBuffer.ReadOnly)
-            image = QtGui.QImage(cloneFrame.bits(), cloneFrame.width(), cloneFrame.height(), cloneFrame.bytesPerLine(), self.imageFormat)
-            
+            image = QImage(cloneFrame.bits(), cloneFrame.width(), cloneFrame.height(), cloneFrame.bytesPerLine(), self.imageFormat)
+
             # Draw the grid on the image before displaying it
             img_withGrid=self.draw_grid(image, self.horizontal_lines, self.vertical_lines, self.x, self.y, self.width, self.height)
-            self.currentFrame=QImage(img_withGrid)
-            painter = QPainter(self)
-            painter.drawImage(0, 0, img_withGrid)  # Use the image with the grid
+            
+            # Pass the frame to the parent widget to draw it.
+            if isinstance(self.parent, QWidget):
+                self.parent.DrawFrame(img_withGrid)
+            
             return True
 
     def draw_grid(self, img: QImage, gridCountX, gridCountY, offsetX=None, offsetY=None, offsetWidth=None, offsetHeight=None):
@@ -102,10 +106,22 @@ class CustomVideoSurface(QAbstractVideoSurface):
                 painter.drawRect(QRect(x, y, cell_width, cell_height))
 
         painter.end()
-
+        
         return image
+
+
 
 class CustomViewfinder(QWidget):
     def __init__(self,parent=None):
-         super().__init__(parent)
-         self.surface=CustomVideoSurface(self)
+        super().__init__(parent)
+        self.surface=CustomVideoSurface(self)
+        self.frame=None
+    
+    def DrawFrame(self, frame:QImage):
+        self.frame=frame
+        self.update()
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        if self.frame:
+            painter.drawImage(0,0, self.frame)
