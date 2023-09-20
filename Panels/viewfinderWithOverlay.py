@@ -1,13 +1,19 @@
-from PyQt5.QtMultimediaWidgets import QCameraViewfinder
+from PyQt5 import QtGui
+from PyQt5.QtCore import QRect
 from PyQt5.QtGui import QPainter, QImage, QColor, QPen
-from PyQt5.QtCore import Qt, QRect
+from PyQt5.QtMultimedia import QAbstractVideoBuffer, QAbstractVideoSurface, QVideoFrame
+from PyQt5.QtWidgets import QWidget
 
-class CustomViewfinder(QCameraViewfinder):
+class CustomVideoSurface(QAbstractVideoSurface):
     def __init__(self, parent=None):
         super().__init__(parent)
-        viewfinder_size = self.size()
-        viewfinder_width = viewfinder_size.width()
-        viewfinder_height = viewfinder_size.height()
+        if parent is not None:
+            viewfinder_size = parent.size()
+            viewfinder_width = viewfinder_size.width()
+            viewfinder_height = viewfinder_size.height()
+        else:
+            viewfinder_width = 0
+            viewfinder_height = 0
         self.x = 10
         self.y = 10
         self.width = viewfinder_width
@@ -16,8 +22,6 @@ class CustomViewfinder(QCameraViewfinder):
         self.vertical_lines = 10
         self.offsetX=0
         self.offsetY=0
-        self.setMinimumSize(400, 300)
-
 
     def update_grid(self, x=None, y=None, width=None, height=None, horizontal_lines=None, vertical_lines=None):
         if x is not None:
@@ -34,36 +38,40 @@ class CustomViewfinder(QCameraViewfinder):
             self.vertical_lines = vertical_lines
         self.update()
 
-    def paintEvent(self, event):
-        # Call the parent paintEvent to ensure the viewfinder is drawn correctly
-        super().paintEvent(event)
+    def isFormatSupported(self, format):
+        imageFormat = QVideoFrame.imageFormatFromPixelFormat(format.pixelFormat())
+        size = format.frameSize()
+        return imageFormat != QtGui.QImage.Format_Invalid and not size.isEmpty() and format.handleType() == QAbstractVideoBuffer.NoHandle
 
-        # Create a QImage of the current frame
-        image = QImage(self.size(), QImage.Format_ARGB32)
+    def start(self, format):
+        imageFormat = QVideoFrame.imageFormatFromPixelFormat(format.pixelFormat())
+        size = format.frameSize()
+        if imageFormat != QtGui.QImage.Format_Invalid and not size.isEmpty():
+            self.imageFormat = imageFormat
+            super().start(format)
+            return True
+        else:
+            return False
 
-        # Create a QPainter to draw on the image
-        painter = QPainter(image)
+    def stop(self):
+        super().stop()
 
-        # Set the pen color to black
-        pen = QPen(QColor(0,0,0))
-        painter.setPen(pen)
+    def present(self, frame):
+        if frame.isValid():
+            cloneFrame = QVideoFrame(frame)
+            cloneFrame.map(QAbstractVideoBuffer.ReadOnly)
+            image = QtGui.QImage(cloneFrame.bits(), cloneFrame.width(), cloneFrame.height(), cloneFrame.bytesPerLine(), self.imageFormat)
+            
+            # Draw the grid on the image before displaying it
+            img_withGrid=self.draw_grid(image, self.horizontal_lines, self.vertical_lines, self.x, self.y, self.width, self.height)
+            self.currentFrame=QImage(img_withGrid)
+            painter = QPainter(self)
+            painter.drawImage(0, 0, img_withGrid)  # Use the image with the grid
+            return True
 
-        # Draw the grid on the image
-        image = self.draw_grid(image, self.horizontal_lines, self.vertical_lines, self.x, self.y, self.width, self.height)
-
-        # Rescale the image (replace new_width and new_height with your desired dimensions)
-        viewfinder_size = self.size()
-        viewfinder_width = viewfinder_size.width()
-        viewfinder_height = viewfinder_size.height()
-        image = image.scaled(viewfinder_width, viewfinder_height, Qt.KeepAspectRatio)
-
-        painter.drawImage(0, 0, image)
-        painter.end()
-
-
-    def draw_grid(self, image: QImage, gridCountX, gridCountY, offsetX=None, offsetY=None, offsetWidth=None, offsetHeight=None):
+    def draw_grid(self, img: QImage, gridCountX, gridCountY, offsetX=None, offsetY=None, offsetWidth=None, offsetHeight=None):
         # Create a copy of the image to draw on
-        image = QImage(image)
+        image = QImage(img)
 
         # Create a QPainter object
         painter = QPainter(image)
@@ -96,3 +104,8 @@ class CustomViewfinder(QCameraViewfinder):
         painter.end()
 
         return image
+
+class CustomViewfinder(QWidget):
+    def __init__(self,parent=None):
+         super().__init__(parent)
+         self.surface=CustomVideoSurface(self)

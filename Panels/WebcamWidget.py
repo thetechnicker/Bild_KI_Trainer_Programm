@@ -33,7 +33,7 @@ class WebcamWidget(QWidget):
         self.height = size.height()-1
 
         #self.overlay = Overlay(self.viewfinder)
-        self.camera.setViewfinder(self.viewfinder)
+        self.camera.setViewfinder(self.viewfinder.surface)
 
         self.capture = QCameraImageCapture(self.camera)
         self.capture.setCaptureDestination(QCameraImageCapture.CaptureToFile)
@@ -47,14 +47,14 @@ class WebcamWidget(QWidget):
         self.offsetX=x
         self.offsetY=y
         x_new, y_new, _, _ =self.getDimension()
-        self.viewfinder.update_grid(x=x_new, y=y_new, width=width,height=height,horizontal_lines=horizontal_lines, vertical_lines=vertical_lines)
+        #self.viewfinder.update_grid(x=x_new, y=y_new, width=width,height=height,horizontal_lines=horizontal_lines, vertical_lines=vertical_lines)
     
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        print("main size: ",self.size())
+        #print("main size: ",self.size())
         x, y, w, h =self.getDimension() 
         #print(x,y, h, w, width, height, scale)
-        self.viewfinder.update_grid(x=int(x),y=int(y),width=int(w),height=int(h))
+        #self.viewfinder.update_grid(x=int(x),y=int(y),width=int(w),height=int(h))
         #self.viewfinder.resize(self.viewfinder.size())
     
     def getDimension(self):
