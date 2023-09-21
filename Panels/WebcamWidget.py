@@ -1,5 +1,10 @@
 import math
 import os
+if os.name == 'nt':
+    pass
+else:
+    #os.environ['GST_PLUGIN_PATH']='/lib/x86_64-linux-gnu/gstreamer1.0'
+    pass
 from PyQt5.QtCore import Qt
 from PyQt5 import QtGui
 from PyQt5.QtMultimedia import QCamera, QCameraInfo, QCameraImageCapture, QImageEncoderSettings

@@ -1,5 +1,9 @@
 import math
 import os
+if os.name == 'nt':
+    pass
+else:
+    os.environ['GST_PLUGIN_PATH']='/usr/lib/x86_64-linux-gnu/gstreamer-1.0'
 import cv2
 import numpy as np
 from PyQt5 import QtCore
