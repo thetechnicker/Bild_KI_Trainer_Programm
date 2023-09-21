@@ -11,10 +11,16 @@ try:
 except:
     from overlay import Overlay
 
+if os.name == 'nt':
+    bilder_pfad = os.path.join(os.environ['USERPROFILE'], 'Pictures')
+else:
+    bilder_pfad = os.path.join(os.environ['HOME'], 'Pictures')
 
 class WebcamWidget(QWidget):
-    def __init__(self, CameraInfo=QCameraInfo.defaultCamera(), imgPath="d:/Images/image"):
+    def __init__(self, CameraInfo=QCameraInfo.availableCameras()[0], imgPath=bilder_pfad):
         super().__init__()
+        if not CameraInfo:
+            raise ValueError("No Camera connected")
         self.path=imgPath
         #if not os.path.exists(os.path.split(self.path)[0]):
         #    os.mkdir(os.path.split(self.path)[0])
