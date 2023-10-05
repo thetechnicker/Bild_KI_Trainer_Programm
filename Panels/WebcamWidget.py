@@ -1,13 +1,10 @@
-import math
 import os
 if os.name == 'nt':
     pass
 else:
     os.environ['GST_PLUGIN_PATH']='/lib/x86_64-linux-gnu/gstreamer1.0'
     pass
-from PyQt5.QtCore import Qt
-from PyQt5 import QtGui
-from PyQt5.QtMultimedia import QCamera, QCameraInfo, QCameraImageCapture, QImageEncoderSettings
+from PyQt5.QtMultimedia import QCamera, QCameraInfo, QCameraImageCapture
 from PyQt5.QtMultimediaWidgets import QCameraViewfinder
 from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget
 import sys
@@ -21,8 +18,13 @@ if os.name == 'nt':
 else:
     bilder_pfad = os.path.join(os.environ['HOME'], 'Pictures')
 
+try:
+    default_cam=QCameraInfo.availableCameras()[-1]
+except:
+    default_cam=None
+
 class WebcamWidget(QWidget):
-    def __init__(self, CameraInfo=QCameraInfo.availableCameras()[0], imgPath=bilder_pfad):
+    def __init__(self, CameraInfo=default_cam, imgPath=bilder_pfad):
         super().__init__()
         if not CameraInfo:
             raise ValueError("No Camera connected")
