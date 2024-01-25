@@ -19,3 +19,4 @@ Panels/__pycache__/
 hook-tensorflow.py
 /dist
 *.dat
+build.*
