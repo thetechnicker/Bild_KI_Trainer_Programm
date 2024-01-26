@@ -4,9 +4,6 @@ from PyQt5 import QtGui
 from PyQt5.QtMultimedia import QCamera, QCameraInfo, QAbstractVideoBuffer, QCameraImageCapture, QAbstractVideoSurface, QVideoFrame
 from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget
 
-rotation = 0
-if os.name == 'nt':
-    rotation = 180
 
 try:
     from .overlay import Overlay
@@ -82,8 +79,11 @@ class VideoBufferSurface(QAbstractVideoSurface):
             cloneFrame = QVideoFrame(frame)
             cloneFrame.map(QAbstractVideoBuffer.ReadOnly)
             image = QtGui.QImage(cloneFrame.bits(), cloneFrame.width(), cloneFrame.height(), cloneFrame.bytesPerLine(), self.imageFormat)
-            transform = QtGui.QTransform().rotate(rotation)
-            image = image.transformed(transform)#.mirrored(True,False)
+            
+            if os.name == 'nt':
+                image = image.mirrored(False,True)
+            else:
+                image = image
             #image_array = qimage2ndarray.rgb_view(image)
 
             width = image.width()
@@ -121,16 +121,13 @@ class WebcamWidget(QWidget):
         self.path = imgPath
         self.count = 0
 
-        print(cameraInfo.orientation())
-        print(cameraInfo.position())
-
         self.camera = QCamera(cameraInfo)
 
         self.camera.load()
         resolutions = self.camera.supportedViewfinderResolutions()
-        #   print(resolutions)
+        #print(resolutions)
         for resolution in resolutions:
-            #print("Resolution: " + str(resolution.width()) + " x " + str(resolution.height()))
+            print("Resolution: " + str(resolution.width()) + " x " + str(resolution.height()))
             pass
 
         self.viewfinder = VideoWidget()
