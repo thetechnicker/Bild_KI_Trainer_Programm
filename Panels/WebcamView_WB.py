@@ -117,11 +117,12 @@ class WebcamWidget(QWidget):
         self.resize(400, 300)
         self.path = imgPath
         self.count = 0
+        print(cameraInfo.orientation())
         self.camera = QCamera(cameraInfo)
 
         self.camera.load()
         resolutions = self.camera.supportedViewfinderResolutions()
-        print(resolutions)
+        #   print(resolutions)
         for resolution in resolutions:
             print("Resolution: " + str(resolution.width()) + " x " + str(resolution.height()))
 

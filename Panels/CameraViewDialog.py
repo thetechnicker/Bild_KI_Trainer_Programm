@@ -145,9 +145,6 @@ class CameraViewDialog(QDialog):
             w = int(self.wInput.text())
         except:
             w = None
-        try:
-        except:
-            w = None
 
         try:
             h = int(self.hInput.text())
