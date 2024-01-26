@@ -1,9 +1,4 @@
 import os
-if os.name == 'nt':
-    pass
-else:
-    os.environ['GST_PLUGIN_PATH']='/lib/x86_64-linux-gnu/gstreamer1.0'
-    pass
 from PyQt5.QtMultimedia import QCamera, QCameraInfo, QCameraImageCapture
 from PyQt5.QtMultimediaWidgets import QCameraViewfinder
 from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget
@@ -106,4 +101,5 @@ if __name__=="__main__":
     app = QApplication(sys.argv)
     window = WebcamWidget()
     window.show()
-    sys.exit(app.exec_())
+    status = app.exec_()
+    sys.exit(status)

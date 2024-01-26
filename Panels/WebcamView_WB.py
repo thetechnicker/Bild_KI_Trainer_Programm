@@ -1,19 +1,9 @@
-import math
 import os
-if os.name == 'nt':
-    pass
-else:
-    os.environ['GST_PLUGIN_PATH']='/usr/lib/x86_64-linux-gnu/gstreamer-1.0'
-import cv2
 import numpy as np
-from PyQt5 import QtCore
-from PyQt5.QtCore import Qt
 from PyQt5 import QtGui
-from PyQt5.QtMultimedia import QCamera, QCameraInfo, QAbstractVideoBuffer, QCameraImageCapture, QImageEncoderSettings, QAbstractVideoSurface, QVideoFrame, QVideoSurfaceFormat
-from PyQt5.QtMultimediaWidgets import QCameraViewfinder
+from PyQt5.QtMultimedia import QCamera, QCameraInfo, QAbstractVideoBuffer, QCameraImageCapture, QAbstractVideoSurface, QVideoFrame
 from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget
-import sys
-# import qimage2ndarray
+
 
 try:
     from .overlay import Overlay
@@ -23,11 +13,12 @@ except:
 
 class VideoWidget(QWidget):
     def __init__(self, parent=None):
+        
         super().__init__(parent)
         self.setMinimumSize(400, 300)
         self.image = QtGui.QImage()
 
-    def setImage(self, image):
+    def setImage(self, image: QtGui.QImage):
         self.image = image
         self.update()
 
@@ -43,10 +34,11 @@ class VideoWidget(QWidget):
                 scaledImage = self.image.scaledToWidth(self.width())
             else:
                 scaledImage = self.image.scaledToHeight(self.height())
+
             # Zentriere das Bild im Widget
             x = (self.width() - scaledImage.width()) / 2
             y = (self.height() - scaledImage.height()) / 2
-            painter.drawImage(QtCore.QPoint(int(x), int(y)), scaledImage)
+            painter.drawImage(int(x), int(y), scaledImage)
 
 
 class VideoBufferSurface(QAbstractVideoSurface):
@@ -88,7 +80,7 @@ class VideoBufferSurface(QAbstractVideoSurface):
             cloneFrame.map(QAbstractVideoBuffer.ReadOnly)
             image = QtGui.QImage(cloneFrame.bits(), cloneFrame.width(), cloneFrame.height(), cloneFrame.bytesPerLine(), self.imageFormat)
             transform = QtGui.QTransform().rotate(180)
-            image = image.transformed(transform)
+            image = image#.mirrored(True,False)#transformed(transform)
             #image_array = qimage2ndarray.rgb_view(image)
 
             width = image.width()
