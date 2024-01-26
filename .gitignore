@@ -15,7 +15,7 @@ Panels/__pycache__/
 *build*
 *.spec
 *dist*
-!release.spec
+release.spec
 hook-tensorflow.py
 /dist
 *.dat

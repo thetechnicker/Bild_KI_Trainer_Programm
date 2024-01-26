@@ -24,7 +24,7 @@ class CameraViewDialog(QDialog):
         self.setWindowTitle("PyQt Webcam Viewer")
         gridLayout = QGridLayout()
         if(camera):
-            self.cam=WebcamWidget(CameraInfo=camera)
+            self.cam=WebcamWidget(cameraInfo=camera)
 
         self.cam=WebcamWidget()
         camDim = self.cam.getDimension()

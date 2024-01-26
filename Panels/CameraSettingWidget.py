@@ -8,12 +8,12 @@ from PyQt5.QtMultimedia import QCameraInfo
 
 import sys
 try:
-    from Panels.neuralNetVideoTest import WebcamWindow
+    from .neuralNetVideoTest import WebcamWindow
 except:
     from neuralNetVideoTest import WebcamWindow
 
 try:
-    from Panels.CameraViewDialog import CameraViewDialog
+    from .CameraViewDialog import CameraViewDialog
 except:
     from CameraViewDialog import CameraViewDialog
 

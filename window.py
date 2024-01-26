@@ -1,3 +1,6 @@
+import time
+timestamp = time.time()
+
 import os
 if os.name == 'nt':
     pass
@@ -466,4 +469,5 @@ if __name__ == "__main__":
 
     window = MainWindow(data)
     window.show()
+    print("BootUp Time: ", (time.time()-timestamp), "ms")
     app.exec_()

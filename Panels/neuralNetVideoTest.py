@@ -163,7 +163,7 @@ class WebcamWindow(QDialog):
             print(self.inputShape)
         else:
             self.inputShape=None
-        self.webcamWidget = WebcamWidget(CameraInfo=camera)
+        self.webcamWidget = WebcamWidget(cameraInfo=camera)
         self.image_widget = ImageWidget(self)
         self.displayArrayThread=None
         self.initUI()

@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtGui import QPixmap
 from PyQt5 import QtGui
 from PyQt5.QtCore import Qt
+
 try:
     from Panels.overlay import Overlay
 except:
@@ -39,8 +40,8 @@ class ImageEditor(QtWidgets.QDialog):
         self.cancel_button = QtWidgets.QPushButton('Cancel')
 
         # Connect the buttons to their respective slots
-        self.ok_button.clicked.connect(self.on_ok)
-        self.cancel_button.clicked.connect(self.on_cancel)
+        #self.ok_button.clicked.connect(self.on_ok)
+        #self.cancel_button.clicked.connect(self.on_cancel)
 
         # Add the buttons to the layout
         button_layout = QtWidgets.QHBoxLayout()
