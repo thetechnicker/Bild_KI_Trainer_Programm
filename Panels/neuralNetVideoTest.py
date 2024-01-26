@@ -1,11 +1,8 @@
-import threading
-import time
-import cv2
 import numpy as np
-from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QDialog
-from PyQt5.QtMultimedia import QCamera, QCameraInfo
+from PyQt5.QtMultimedia import QCameraInfo
 from PyQt5.QtCore import QThread
+from PyQt5 import QtCore, QtGui
 import tensorflow as tf
 from tensorflow.keras.models import load_model
 
@@ -19,10 +16,8 @@ try:
 except:
     from Panels.WebcamView_WB import WebcamWidget
     
-from PyQt5 import QtCore, QtGui, QtWidgets
-import numpy as np
 
-class ImageWidget(QtWidgets.QWidget):
+class ImageWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setMinimumSize(400, 300)

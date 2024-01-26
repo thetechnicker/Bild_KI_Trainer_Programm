@@ -2,6 +2,7 @@ from PyQt5.QtCore import Qt
 from PyQt5 import QtGui
 from PyQt5.QtWidgets import QWidget
 
+
 class Overlay(QWidget):
     def __init__(self, parent=None, x=0, y=0, width=100, height=100, horizontal_lines=10, vertical_lines=10):
         super().__init__(parent)
@@ -45,3 +46,6 @@ class Overlay(QWidget):
                 painter.drawLine(int(x), int(self.y), int(x), int(self.y + self.height))
         except Exception as e:
             print(e)
+
+    def getDim(self):
+        return (self.x, self.y, self.width, self.height)

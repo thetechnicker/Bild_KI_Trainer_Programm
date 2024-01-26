@@ -1,15 +1,21 @@
+import os
+
 import sys
 from PyQt5 import QtCore, QtWidgets, QtGui
-from PyQt5.QtWidgets import QDialog, QLabel, QGridLayout, QLineEdit, QPushButton
+from PyQt5.QtWidgets import QDialog, QLabel, QGridLayout, QLineEdit, QPushButton, QSpinBox
 from PyQt5.QtMultimedia import QCamera, QCameraInfo
 
+
 try:
-    from .WebcamWidget import WebcamWidget
+    from .EmptyableSpinBox import EmptyableSpinBox
+    from .WebcamView_WB import WebcamWidget as WebcamWidget
 except:
-    from WebcamWidget import WebcamWidget
+    from EmptyableSpinBox import EmptyableSpinBox
+    from WebcamView_WB import WebcamWidget as WebcamWidget
 
 class CameraViewDialog(QDialog):
     def __init__(self, parent=None, GridHeight=None, GridWidth=None, folder=None, camera:QCameraInfo=None):
+        
         super().__init__(parent)
         if folder:
             self.folder=folder
@@ -17,49 +23,61 @@ class CameraViewDialog(QDialog):
         self.resize(QtCore.QSize(1024, 480))
         self.setWindowTitle("PyQt Webcam Viewer")
         gridLayout = QGridLayout()
+        if(camera):
+            self.cam=WebcamWidget(CameraInfo=camera)
 
-        self.cam=WebcamWidget(CameraInfo=camera)
-
+        self.cam=WebcamWidget()
+        camDim = self.cam.getDimension()
         # Add input fields for x and y coordinates of rectangle
-        self.xInput = QLineEdit(self)
-        self.yInput = QLineEdit(self)
+        self.xInput = EmptyableSpinBox(self)
+        self.yInput = EmptyableSpinBox(self)
         
-        self.wInput = QLineEdit(self)
-        self.hInput = QLineEdit(self)
+        self.wInput = EmptyableSpinBox(self)
+        self.hInput = EmptyableSpinBox(self)
 
-        self.gxInput = QLineEdit(self)
-        self.gyInput = QLineEdit(self)
+        self.gxInput = EmptyableSpinBox(self)
+        self.gyInput = EmptyableSpinBox(self)
 
-        self.xInput.setText("0")
-        self.yInput.setText("0")
+        self.xInput.setValue(0)
+        self.yInput.setValue(0)
 
-        self.wInput.setText("")
-        self.hInput.setText("")
+        self.wInput.setValue(0)
+        self.hInput.setValue(0)
 
-        self.gxInput.setText("10")
-        self.gyInput.setText("10")
+        self.gxInput.setValue(0)
+        self.gyInput.setValue(0)
         
 
-        self.xInput.setValidator(QtGui.QIntValidator())
-        self.xInput.textChanged.connect(self.updateGrid)
+        #self.xInput.setValidator(QtGui.QIntValidator())
+        self.xInput.setFixedWidth(100)
+        self.xInput.setRange(0, int(camDim[2]))
+        self.xInput.valueChanged.connect(self.updateGrid)
 
-        self.yInput.setValidator(QtGui.QIntValidator())
+        #self.yInput.setValidator(QtGui.QIntValidator())
+        self.yInput.setFixedWidth(100)
+        self.yInput.setRange(0, int(camDim[3]))
         self.yInput.textChanged.connect(self.updateGrid)
         
-        self.wInput.setValidator(QtGui.QIntValidator())
+        #self.wInput.setValidator(QtGui.QIntValidator())
+        self.wInput.setFixedWidth(100)
+        self.wInput.setRange(0, int(camDim[2]))
         self.wInput.textChanged.connect(self.updateGrid)
         if GridWidth:
             self.wInput.setReadOnly(True)
 
-        self.hInput.setValidator(QtGui.QIntValidator())
+        #self.hInput.setValidator(QtGui.QIntValidator())
+        self.hInput.setFixedWidth(100)
+        self.hInput.setRange(0, int(camDim[3]))
         self.hInput.textChanged.connect(self.updateGrid)
         if GridHeight:
             self.hInput.setReadOnly(True)
 
-        self.gxInput.setValidator(QtGui.QIntValidator())
+        #self.gxInput.setValidator(QtGui.QIntValidator())
+        self.gxInput.setFixedWidth(100)
         self.gxInput.textChanged.connect(self.updateGrid)
 
-        self.gyInput.setValidator(QtGui.QIntValidator())
+        #self.gyInput.setValidator(QtGui.QIntValidator())
+        self.gyInput.setFixedWidth(100)
         self.gyInput.textChanged.connect(self.updateGrid)
 
         gridLayout.addWidget(QLabel("X:"), 0, 0)
@@ -79,13 +97,16 @@ class CameraViewDialog(QDialog):
 
 
         saveButton = QPushButton('Save', self)
+        saveButton.setFixedWidth(100)
         saveButton.clicked.connect(self.saveIMG)
 
         cancelButton = QPushButton('Cancel', self)
+        cancelButton.setFixedWidth(100)
         cancelButton.clicked.connect(self.close)
 
         gridLayout.addWidget(saveButton, 6, 0)
         gridLayout.addWidget(cancelButton, 6, 1)
+
         layout=QtWidgets.QHBoxLayout(self)
         layout.addWidget(self.cam)
         layout.addLayout(gridLayout)
@@ -103,7 +124,7 @@ class CameraViewDialog(QDialog):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        print(self.size())
+        #print(self.size())
 
     def closeEvent(self, event):
         self.cam.stop()
@@ -111,19 +132,36 @@ class CameraViewDialog(QDialog):
     
     def updateGrid(self,text):
         try:
+            x = int(self.xInput.text())
+        except:
+            x = None
+
+        try:
+            y = int(self.yInput.text())
+        except:
+            y = None
+
+        try:
             w = int(self.wInput.text())
-            h = int(self.hInput.text())
         except:
             w = None
-            h = None
+
         try:
-            x = int(self.xInput.text())
-            y = int(self.yInput.text())
+            h = int(self.hInput.text())
+        except:
+            h = None
+
+        try:
             gx = int(self.gxInput.text())
+        except:
+            gx = None
+
+        try:
             gy = int(self.gyInput.text())
-            self.cam.setGrid(x=x,y=y,width=w,height=h,horizontal_lines=gx,vertical_lines=gy)
-        except Exception as e:
-            print(e)
+        except:
+            gy = None
+            
+        self.cam.setGrid(x=x,y=y,width=w,height=h,horizontal_lines=gx,vertical_lines=gy)
 
 
 if __name__ == "__main__":

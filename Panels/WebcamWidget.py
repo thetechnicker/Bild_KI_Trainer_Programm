@@ -1,8 +1,5 @@
-import math
 import os
-from PyQt5.QtCore import Qt
-from PyQt5 import QtGui
-from PyQt5.QtMultimedia import QCamera, QCameraInfo, QCameraImageCapture, QImageEncoderSettings
+from PyQt5.QtMultimedia import QCamera, QCameraInfo, QCameraImageCapture
 from PyQt5.QtMultimediaWidgets import QCameraViewfinder
 from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget
 import sys
@@ -12,15 +9,20 @@ except:
     from overlay import Overlay
 
 if os.name == 'nt':
-    # Windows
     bilder_pfad = os.path.join(os.environ['USERPROFILE'], 'Pictures')
 else:
-    # Linux
     bilder_pfad = os.path.join(os.environ['HOME'], 'Pictures')
 
+try:
+    default_cam=QCameraInfo.availableCameras()[-1]
+except:
+    default_cam=None
+
 class WebcamWidget(QWidget):
-    def __init__(self, CameraInfo=QCameraInfo.defaultCamera(), imgPath=bilder_pfad):
+    def __init__(self, CameraInfo=default_cam, imgPath=bilder_pfad):
         super().__init__()
+        if not CameraInfo:
+            raise ValueError("No Camera connected")
         self.path=imgPath
         #if not os.path.exists(os.path.split(self.path)[0]):
         #    os.mkdir(os.path.split(self.path)[0])
@@ -99,4 +101,5 @@ if __name__=="__main__":
     app = QApplication(sys.argv)
     window = WebcamWidget()
     window.show()
-    sys.exit(app.exec_())
+    status = app.exec_()
+    sys.exit(status)
