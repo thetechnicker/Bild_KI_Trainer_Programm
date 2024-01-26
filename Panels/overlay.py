@@ -46,3 +46,6 @@ class Overlay(QWidget):
                 painter.drawLine(int(x), int(self.y), int(x), int(self.y + self.height))
         except Exception as e:
             print(e)
+
+    def getDim(self):
+        return (self.x, self.y, self.width, self.height)

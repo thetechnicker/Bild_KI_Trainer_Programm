@@ -27,6 +27,7 @@ class CameraViewDialog(QDialog):
             self.cam=WebcamWidget(CameraInfo=camera)
 
         self.cam=WebcamWidget()
+        camDim = self.cam.getDimension()
         # Add input fields for x and y coordinates of rectangle
         self.xInput = EmptyableSpinBox(self)
         self.yInput = EmptyableSpinBox(self)
@@ -49,20 +50,24 @@ class CameraViewDialog(QDialog):
 
         #self.xInput.setValidator(QtGui.QIntValidator())
         self.xInput.setFixedWidth(100)
+        self.xInput.setRange(0, int(camDim[2]))
         self.xInput.valueChanged.connect(self.updateGrid)
 
         #self.yInput.setValidator(QtGui.QIntValidator())
         self.yInput.setFixedWidth(100)
+        self.yInput.setRange(0, int(camDim[3]))
         self.yInput.textChanged.connect(self.updateGrid)
         
         #self.wInput.setValidator(QtGui.QIntValidator())
         self.wInput.setFixedWidth(100)
+        self.wInput.setRange(0, int(camDim[2]))
         self.wInput.textChanged.connect(self.updateGrid)
         if GridWidth:
             self.wInput.setReadOnly(True)
 
         #self.hInput.setValidator(QtGui.QIntValidator())
         self.hInput.setFixedWidth(100)
+        self.hInput.setRange(0, int(camDim[3]))
         self.hInput.textChanged.connect(self.updateGrid)
         if GridHeight:
             self.hInput.setReadOnly(True)

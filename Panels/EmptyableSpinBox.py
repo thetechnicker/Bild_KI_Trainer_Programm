@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QApplication, QSpinBox, QVBoxLayout, QDialog
 
 class EmptyableSpinBox(QSpinBox):
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         super().__init__(parent)
         self.setRange(0, 100)  # Set the range of the spin box
         self.clear()  # Clear the spin box
@@ -19,8 +19,8 @@ class InputDialog(QDialog):
 
     def initUI(self):
         layout = QVBoxLayout()
-        self.spin_box1 = EmptyableSpinBox()
-        self.spin_box2 = EmptyableSpinBox()
+        self.spin_box1 = EmptyableSpinBox(self)
+        self.spin_box2 = EmptyableSpinBox(self)
         layout.addWidget(self.spin_box1)
         layout.addWidget(self.spin_box2)
         self.setLayout(layout)

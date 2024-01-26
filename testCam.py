@@ -35,8 +35,12 @@ class CameraTester(QWidget):
 
         try:
             self.camera.setViewfinder(self.viewfinder)
+            self.camera.load()
+            res = self.camera.supportedViewfinderResolutions()
+            print(res)
+            for r in res:
+                print(r)
             self.camera.start()
-
             # Stop the camera after 5 seconds
             QTimer.singleShot(5000, self.camera.stop)
         except Exception as e:
