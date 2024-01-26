@@ -12,11 +12,13 @@ Panels/__pycache__/
 /test
 *_test.*
 *.dump
-/build
+*build*
 *.spec
+*dist*
 !release.spec
 hook-tensorflow.py
 /dist
 *.dat
 *build*
 .exe
+build.*

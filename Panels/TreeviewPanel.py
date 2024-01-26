@@ -6,7 +6,7 @@ from PyQt5.QtCore import Qt
 class EditableStandardItem(QtGui.QStandardItem):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+        self.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)# | Qt.ITemIsEdibtable)
 
     def is_folder(self):
         # Check if the second column contains the string 'folder'

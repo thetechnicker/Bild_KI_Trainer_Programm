@@ -1,15 +1,9 @@
-import math
 import os
-import cv2
 import numpy as np
-from PyQt5 import QtCore
-from PyQt5.QtCore import Qt
 from PyQt5 import QtGui
-from PyQt5.QtMultimedia import QCamera, QCameraInfo, QAbstractVideoBuffer, QCameraImageCapture, QImageEncoderSettings, QAbstractVideoSurface, QVideoFrame, QVideoSurfaceFormat
-from PyQt5.QtMultimediaWidgets import QCameraViewfinder
+from PyQt5.QtMultimedia import QCamera, QCameraInfo, QAbstractVideoBuffer, QCameraImageCapture, QAbstractVideoSurface, QVideoFrame
 from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget
-import sys
-# import qimage2ndarray
+
 
 try:
     from .overlay import Overlay
@@ -19,11 +13,12 @@ except:
 
 class VideoWidget(QWidget):
     def __init__(self, parent=None):
+        
         super().__init__(parent)
         self.setMinimumSize(400, 300)
         self.image = QtGui.QImage()
 
-    def setImage(self, image):
+    def setImage(self, image: QtGui.QImage):
         self.image = image
         self.update()
 
@@ -39,10 +34,11 @@ class VideoWidget(QWidget):
                 scaledImage = self.image.scaledToWidth(self.width())
             else:
                 scaledImage = self.image.scaledToHeight(self.height())
+
             # Zentriere das Bild im Widget
             x = (self.width() - scaledImage.width()) / 2
             y = (self.height() - scaledImage.height()) / 2
-            painter.drawImage(QtCore.QPoint(int(x), int(y)), scaledImage)
+            painter.drawImage(int(x), int(y), scaledImage)
 
 
 class VideoBufferSurface(QAbstractVideoSurface):
@@ -84,7 +80,7 @@ class VideoBufferSurface(QAbstractVideoSurface):
             cloneFrame.map(QAbstractVideoBuffer.ReadOnly)
             image = QtGui.QImage(cloneFrame.bits(), cloneFrame.width(), cloneFrame.height(), cloneFrame.bytesPerLine(), self.imageFormat)
             transform = QtGui.QTransform().rotate(180)
-            image = image.transformed(transform)
+            image = image#.mirrored(True,False)#transformed(transform)
             #image_array = qimage2ndarray.rgb_view(image)
 
             width = image.width()
@@ -116,14 +112,22 @@ class VideoBufferSurface(QAbstractVideoSurface):
         return self.image_array.shape
 
 class WebcamWidget(QWidget):
-    def __init__(self, CameraInfo=QCameraInfo.defaultCamera(), imgPath="d:/Images/image"):
+    def __init__(self, cameraInfo:QCameraInfo=QCameraInfo.defaultCamera(), imgPath="d:/Images/image"):
         super().__init__()
         self.resize(400, 300)
         self.path = imgPath
         self.count = 0
-        self.camera = QCamera(CameraInfo)
+        self.camera = QCamera(cameraInfo)
+
+        self.camera.load()
+        resolutions = self.camera.supportedViewfinderResolutions()
+        print(resolutions)
+        for resolution in resolutions:
+            print("Resolution: " + str(resolution.width()) + " x " + str(resolution.height()))
+
         self.viewfinder = VideoWidget()
         self.overlay = Overlay(self.viewfinder)
+
         self.surface = VideoBufferSurface(self.viewfinder)
         #-----------------------------------------
         self.camera.setViewfinder(self.surface)
@@ -133,18 +137,45 @@ class WebcamWidget(QWidget):
         layout = QVBoxLayout(self)
         #self.viewfinder.show()
         layout.addWidget(self.viewfinder)
+        
+
+        self.offsetX=0
+        self.offsetY=0
         self.camera.start()
+        self.scale=1
+        _size = self.getDimension()
+        self.setGrid(0, 0, _size[2], _size[3])
+        self.overlay.resize(self.viewfinder.size())
 
 
     def setGrid(self, x=None, y=None, width=None, height=None, horizontal_lines=None, vertical_lines=None):
         x_new, y_new, _, _ = self.getDimension()
+        self.offsetX = x
+        self.offsetY = y
+        if(x):
+            x_new += self.offsetX
+        if(y):
+            y_new += self.offsetY
+        if(width):
+            width *=self.scale
+        if(height):
+            height *=self.scale
         self.overlay.update_grid(x=x_new, y=y_new, width=width, height=height,
                                  horizontal_lines=horizontal_lines, vertical_lines=vertical_lines)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
         x, y, w, h = self.getDimension()
-        self.overlay.update_grid(x=int(x), y=int(y), width=int(w), height=int(h))
+        dim = self.overlay.getDim()
+        sw = w/dim[2]
+        sh = h/dim[3]
+        self.scale = min(sw, sh)
+        _x = x+self.offsetX*self.scale
+        _y = y+self.offsetY*self.scale
+        _w = self.scale*dim[2]
+        _h = self.scale*dim[3]
+        print((x, y, w, h), dim, (sw, sh),(_x, _y, _w, _h))
+        self.overlay.update_grid(x=int(_x), y=int(_y), width=int(_w), height=int(_h))
         self.overlay.resize(self.viewfinder.size())
 
     def getDimension(self):

@@ -1,5 +1,9 @@
-import json
 import os
+if os.name == 'nt':
+    pass
+else:
+    os.environ['GST_PLUGIN_PATH']='/lib/x86_64-linux-gnu/gstreamer1.0'
+import json
 import sys
 from PyQt5.QtWidgets import QMainWindow, QApplication
 from PyQt5 import QtWidgets, QtCore
@@ -18,6 +22,8 @@ import dbPrinter
 
 import subprocess
 import traceback
+
+
 
 def my_excepthook(exc_type, exc_value, exc_traceback):
     # Format the traceback

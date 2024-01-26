@@ -3,9 +3,10 @@ from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtGui import QPixmap
 from PyQt5 import QtGui
 from PyQt5.QtCore import Qt
-
-from Panels.overlay import Overlay
-
+try:
+    from Panels.overlay import Overlay
+except:
+    from overlay import Overlay
 
 class ImageEditor(QtWidgets.QDialog):
     def __init__(self, image:str=None):
