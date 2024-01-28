@@ -27,4 +27,4 @@ def print_database(db_file):
     # Close the connection
     connection.close()
 
-print_database("./test.db")
+print_database("D:/Python/GUI/asdfasdf/kgj/kgj.db")

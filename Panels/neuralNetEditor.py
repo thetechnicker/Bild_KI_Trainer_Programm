@@ -101,7 +101,6 @@ class NeuralNetEditor(QtWidgets.QWidget):
         if not self.projectFolder:
           raise ValueError('projectFolder is not set')
         dbFile=self.projectFolder
-        
         print(dbFile)
         connection = sqlite3.connect(dbFile)
         cursor = connection.cursor()
@@ -114,7 +113,6 @@ class NeuralNetEditor(QtWidgets.QWidget):
         cursor.execute('SELECT label, value FROM Yolo')
         yolo_data = cursor.fetchall()
         print(yolo_data)
-        
         yolo_settings = {row[0]: int(row[1]) for row in yolo_data}
         vgc = yolo_settings['VerticalGridCount']
         hgc = yolo_settings['HorizontalGridCount']
@@ -140,7 +138,6 @@ class NeuralNetEditor(QtWidgets.QWidget):
         y_shape = y.shape[1:]
         output_size = np.prod(y_shape)
         print(x,y,sep="\n")
-
         # Get the selected pretrained model
         print(x.shape[1:])
         self.model.add(Input(shape=x.shape[1:]))
@@ -157,10 +154,8 @@ class NeuralNetEditor(QtWidgets.QWidget):
             layer.trainable = False
           # Create a new model by adding layers on top of the base model
           self.model.add(base_model)
-
         if self.LoadedModel:
           self.model.add(self.LoadedModel)
-    
         # Add the new layers
         for i in range(self.layers_list.count()):
           layer_text = self.layers_list.item(i).text()
@@ -169,7 +164,6 @@ class NeuralNetEditor(QtWidgets.QWidget):
             layer_params = layer_params[:-1]
           else:
              layer_type=layer_text
-
           # Check if the layer is pretrained
           is_pretrained = False
           if layer_type in self.pretrained_layers:
@@ -177,7 +171,6 @@ class NeuralNetEditor(QtWidgets.QWidget):
             self.pretrained_layers[layer_type].pop(0)
             if not self.pretrained_layers[layer_type]:
               del self.pretrained_layers[layer_type]
-
           if not is_pretrained:
             if layer_type == 'Dense':
               units = int(layer_params)
@@ -193,7 +186,6 @@ class NeuralNetEditor(QtWidgets.QWidget):
             elif layer_type == 'MaxPooling2D':
               pool_size = int(layer_params)
               self.model.add(MaxPooling2D(pool_size))
-
         self.model.add(Flatten())
         self.model.add(Dense(output_size, activation='softmax'))
         self.model.add(Reshape(y_shape))
