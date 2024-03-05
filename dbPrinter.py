@@ -26,5 +26,3 @@ def print_database(db_file):
             print(' | '.join(map(str, row)))
     # Close the connection
     connection.close()
-
-print_database("D:/Python/GUI/asdfasdf/kgj/kgj.db")

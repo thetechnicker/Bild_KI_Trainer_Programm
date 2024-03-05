@@ -209,7 +209,7 @@ class NeuralNetEditor(QtWidgets.QWidget):
 
         # Save the settings to a file
         with open(filename, 'w') as f:
-            json.dump(settings, f)
+            json.dump(settings, f, indent=4)
 
     def load_settings(self, filename):
         # Load the settings from a file

@@ -192,7 +192,7 @@ class MainWindow(QMainWindow):
         self.data["h_sizes"]= h_sizes
         self.data["v_sizes"]= v_sizes
         with open("./settings.json", "w") as f:
-            json.dump(self.data,f)
+            json.dump(self.data,f, indent=4)
         event.accept()
 
 
@@ -224,7 +224,7 @@ class MainWindow(QMainWindow):
             data["projectFolder"]=project_folder
             self.data["projectFolder"]=project_folder
             with open("./settings.json", "w") as f:
-                json.dump(data,f)
+                json.dump(data,f, indent=4)
 
     def new_projeck(self):
         if self.DatabaseFile:
@@ -458,14 +458,14 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     if not os.path.exists("./settings.json"):
         with open("./settings.json", "x") as f:
-            json.dump({}, f)
+            json.dump({}, f, indent=4)
     with open("./settings.json") as f:
         data=json.load(f)
     if not "projectFolder" in data or not os.path.exists(data["projectFolder"]):
         folder_name = QtWidgets.QFileDialog.getExistingDirectory(None, 'Select Folder')
         data["projectFolder"]=folder_name
         with open("./settings.json", "w") as f:
-                json.dump(data,f)
+                json.dump(data,f, indent=4)
 
     window = MainWindow(data)
     window.show()
